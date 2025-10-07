@@ -1,5 +1,7 @@
-# Basic tests for ReproFlow
-# These tests verify core functionality
+# tests/testthat/test-basic.R
+
+library(ReproFlow)
+
 
 test_that("capture_session works", {
   skip_on_cran()
