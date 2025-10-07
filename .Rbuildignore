@@ -1,0 +1,15 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.gitignore$
+^README\.Rmd$
+^LICENSE\.md$
+^\.reproflow$
+^data$
+^results$
+^renv$
+^renv\.lock$
+^\.Rprofile$
+^Dockerfile$
+^docker-compose\.yml$
+^\.dockerignore$
