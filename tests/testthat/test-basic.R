@@ -2,7 +2,6 @@
 
 library(ReproFlow)
 
-context("Basic utility functions")
 
 test_that("capture_session works", {
   skip_on_cran()
