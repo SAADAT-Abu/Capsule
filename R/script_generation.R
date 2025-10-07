@@ -119,9 +119,13 @@ generate_repro_script <- function(script_file,
     ""
   )
 
-  if (!is.null(source_script) && file.exists(source_script)) {
-    source_code <- readLines(source_script)
-    script_lines <- c(script_lines, source_code, "")
+  if (!is.null(source_script)) {
+    if (file.exists(source_script)) {
+      source_code <- readLines(source_script)
+      script_lines <- c(script_lines, source_code, "")
+    } else {
+      stop("Source script not found at path: ", source_script)
+    }
   } else {
     script_lines <- c(script_lines,
       "# Insert your analysis code here",
