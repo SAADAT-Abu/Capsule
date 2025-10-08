@@ -24,14 +24,12 @@
 #' )
 #' }
 generate_singularity <- function(
-  output_dir = ".",
-  r_version = NULL,
-  base_image = "rocker/r-ver",
-  conda_env = NULL,
-  system_deps = NULL,
-  project_name = "reproflow-project"
-) {
-
+    output_dir = ".",
+    r_version = NULL,
+    base_image = "rocker/r-ver",
+    conda_env = NULL,
+    system_deps = NULL,
+    project_name = "reproflow-project") {
   if (is.null(r_version)) {
     r_version <- paste(R.version$major, R.version$minor, sep = ".")
   }
@@ -79,7 +77,8 @@ generate_singularity <- function(
     }
   }
 
-  def_lines <- c(def_lines,
+  def_lines <- c(
+    def_lines,
     "",
     "    # Clean up",
     "    apt-get clean",
@@ -89,7 +88,8 @@ generate_singularity <- function(
 
   # Conda installation if needed
   if (!is.null(conda_env) && file.exists(conda_env)) {
-    def_lines <- c(def_lines,
+    def_lines <- c(
+      def_lines,
       "    # Install Miniconda",
       "    cd /opt",
       "    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh",
@@ -107,21 +107,24 @@ generate_singularity <- function(
   }
 
   # R packages via renv
-  def_lines <- c(def_lines,
+  def_lines <- c(
+    def_lines,
     "    # Install renv for R package management",
     "    R -e \"install.packages('renv', repos='https://cloud.r-project.org/')\"",
     ""
   )
 
   # Files section
-  def_lines <- c(def_lines,
+  def_lines <- c(
+    def_lines,
     "%files",
     "    # Copy project files (adjust as needed)",
     "    renv.lock /project/renv.lock"
   )
 
   if (!is.null(conda_env) && file.exists(conda_env)) {
-    def_lines <- c(def_lines,
+    def_lines <- c(
+      def_lines,
       paste0("    ", conda_env, " /project/", basename(conda_env))
     )
   }
@@ -129,19 +132,22 @@ generate_singularity <- function(
   def_lines <- c(def_lines, "")
 
   # Environment section
-  def_lines <- c(def_lines,
+  def_lines <- c(
+    def_lines,
     "%environment",
     "    export LC_ALL=C",
     "    export PATH=/opt/R/bin:$PATH"
   )
 
   if (!is.null(conda_env)) {
-    def_lines <- c(def_lines,
+    def_lines <- c(
+      def_lines,
       "    export PATH=/opt/conda/bin:$PATH"
     )
   }
 
-  def_lines <- c(def_lines,
+  def_lines <- c(
+    def_lines,
     "",
     "%runscript",
     "    # Default: launch R",

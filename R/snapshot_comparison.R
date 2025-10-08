@@ -17,8 +17,7 @@
 #' compare_snapshots("analysis_v1", "analysis_v2")
 #' }
 compare_snapshots <- function(snapshot1, snapshot2,
-                             output_file = "snapshot_comparison.md") {
-
+                              output_file = "snapshot_comparison.md") {
   cli::cli_alert_info("Comparing snapshots: {snapshot1} vs {snapshot2}")
 
   snap1_dir <- file.path(".capsule/snapshots", snapshot1)
@@ -37,15 +36,19 @@ compare_snapshots <- function(snapshot1, snapshot2,
 
   # Load metadata
   meta1 <- jsonlite::read_json(file.path(snap1_dir, "snapshot_metadata.json"),
-                               simplifyVector = FALSE)
+    simplifyVector = FALSE
+  )
   meta2 <- jsonlite::read_json(file.path(snap2_dir, "snapshot_metadata.json"),
-                               simplifyVector = FALSE)
+    simplifyVector = FALSE
+  )
 
   # Compare packages
   pkg1 <- jsonlite::read_json(file.path(snap1_dir, "packages.json"),
-                             simplifyVector = FALSE)
+    simplifyVector = FALSE
+  )
   pkg2 <- jsonlite::read_json(file.path(snap2_dir, "packages.json"),
-                             simplifyVector = FALSE)
+    simplifyVector = FALSE
+  )
 
   pkg_diff <- .compare_packages(pkg1, pkg2)
 
@@ -100,7 +103,6 @@ compare_snapshots <- function(snapshot1, snapshot2,
 #'
 #' @keywords internal
 .compare_packages <- function(pkg1, pkg2) {
-
   pkgs1 <- names(pkg1$packages)
   pkgs2 <- names(pkg2$packages)
 
@@ -140,7 +142,6 @@ compare_snapshots <- function(snapshot1, snapshot2,
 #'
 #' @keywords internal
 .compare_registries <- function(file1, file2, type) {
-
   if (!file.exists(file1) || !file.exists(file2)) {
     return(list(status = "one or both files missing"))
   }
@@ -200,8 +201,7 @@ compare_snapshots <- function(snapshot1, snapshot2,
 #'
 #' @keywords internal
 .generate_comparison_report <- function(snap1, snap2, meta1, meta2,
-                                       pkg_diff, param_diff, data_diff, seed_diff) {
-
+                                        pkg_diff, param_diff, data_diff, seed_diff) {
   report <- c(
     paste("#", "Snapshot Comparison"),
     "",
@@ -220,38 +220,49 @@ compare_snapshots <- function(snapshot1, snapshot2,
   )
 
   # Summary table
-  report <- c(report,
+  report <- c(
+    report,
     "| Component | Added | Removed | Changed |",
     "|-----------|-------|---------|---------|",
-    paste("|", "Packages", "|",
-          length(pkg_diff$added), "|",
-          length(pkg_diff$removed), "|",
-          length(pkg_diff$changed), "|"),
-    paste("|", "Parameters", "|",
-          param_diff$n_added, "|",
-          param_diff$n_removed, "|",
-          param_diff$n_modified, "|"),
-    paste("|", "Data Files", "|",
-          data_diff$n_added, "|",
-          data_diff$n_removed, "|",
-          data_diff$n_modified, "|"),
-    paste("|", "Seeds", "|",
-          seed_diff$n_added, "|",
-          seed_diff$n_removed, "|",
-          seed_diff$n_modified, "|"),
+    paste(
+      "|", "Packages", "|",
+      length(pkg_diff$added), "|",
+      length(pkg_diff$removed), "|",
+      length(pkg_diff$changed), "|"
+    ),
+    paste(
+      "|", "Parameters", "|",
+      param_diff$n_added, "|",
+      param_diff$n_removed, "|",
+      param_diff$n_modified, "|"
+    ),
+    paste(
+      "|", "Data Files", "|",
+      data_diff$n_added, "|",
+      data_diff$n_removed, "|",
+      data_diff$n_modified, "|"
+    ),
+    paste(
+      "|", "Seeds", "|",
+      seed_diff$n_added, "|",
+      seed_diff$n_removed, "|",
+      seed_diff$n_modified, "|"
+    ),
     "",
     "---",
     ""
   )
 
   # Package changes
-  report <- c(report,
+  report <- c(
+    report,
     "## Package Changes",
     ""
   )
 
   if (length(pkg_diff$added) > 0) {
-    report <- c(report,
+    report <- c(
+      report,
       "### Added Packages",
       "",
       paste("-", pkg_diff$added),
@@ -260,7 +271,8 @@ compare_snapshots <- function(snapshot1, snapshot2,
   }
 
   if (length(pkg_diff$removed) > 0) {
-    report <- c(report,
+    report <- c(
+      report,
       "### Removed Packages",
       "",
       paste("-", pkg_diff$removed),
@@ -269,12 +281,14 @@ compare_snapshots <- function(snapshot1, snapshot2,
   }
 
   if (length(pkg_diff$changed) > 0) {
-    report <- c(report,
+    report <- c(
+      report,
       "### Version Changes",
       ""
     )
     for (detail in pkg_diff$details) {
-      report <- c(report,
+      report <- c(
+        report,
         paste("-", detail$package, ":", detail$v1, "->", detail$v2)
       )
     }
@@ -286,14 +300,15 @@ compare_snapshots <- function(snapshot1, snapshot2,
   }
 
   # Parameter changes
-  report <- c(report,
+  report <- c(
+    report,
     "## Parameter Changes",
     ""
   )
 
   # Safe check for changes
   has_param_changes <- !is.null(param_diff$n_added) && !is.null(param_diff$n_removed) && !is.null(param_diff$n_modified) &&
-                       (param_diff$n_added > 0 || param_diff$n_removed > 0 || param_diff$n_modified > 0)
+    (param_diff$n_added > 0 || param_diff$n_removed > 0 || param_diff$n_modified > 0)
 
   if (isTRUE(has_param_changes)) {
     if (length(param_diff$added) > 0) {
@@ -310,14 +325,15 @@ compare_snapshots <- function(snapshot1, snapshot2,
   }
 
   # Data file changes
-  report <- c(report,
+  report <- c(
+    report,
     "## Data File Changes",
     ""
   )
 
   # Safe check for changes
   has_data_changes <- !is.null(data_diff$n_added) && !is.null(data_diff$n_removed) && !is.null(data_diff$n_modified) &&
-                      (data_diff$n_added > 0 || data_diff$n_removed > 0 || data_diff$n_modified > 0)
+    (data_diff$n_added > 0 || data_diff$n_removed > 0 || data_diff$n_modified > 0)
 
   if (isTRUE(has_data_changes)) {
     if (length(data_diff$added) > 0) {
@@ -334,14 +350,15 @@ compare_snapshots <- function(snapshot1, snapshot2,
   }
 
   # Random seed changes
-  report <- c(report,
+  report <- c(
+    report,
     "## Random Seed Changes",
     ""
   )
 
   # Safe check for changes
   has_seed_changes <- !is.null(seed_diff$n_added) && !is.null(seed_diff$n_removed) && !is.null(seed_diff$n_modified) &&
-                      (seed_diff$n_added > 0 || seed_diff$n_removed > 0 || seed_diff$n_modified > 0)
+    (seed_diff$n_added > 0 || seed_diff$n_removed > 0 || seed_diff$n_modified > 0)
 
   if (isTRUE(has_seed_changes)) {
     if (length(seed_diff$added) > 0) {
@@ -375,7 +392,6 @@ compare_snapshots <- function(snapshot1, snapshot2,
 #' list_snapshots()
 #' }
 list_snapshots <- function() {
-
   snapshots_dir <- ".capsule/snapshots"
 
   if (!dir.exists(snapshots_dir)) {

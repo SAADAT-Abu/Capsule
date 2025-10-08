@@ -34,17 +34,15 @@
 #' )
 #' }
 track_reference_genome <- function(
-  fasta_path,
-  gtf_path = NULL,
-  gff_path = NULL,
-  genome_build = NULL,
-  species = NULL,
-  source_url = NULL,
-  indices = list(),
-  metadata = list(),
-  registry_file = ".capsule/reference_registry.json"
-) {
-
+    fasta_path,
+    gtf_path = NULL,
+    gff_path = NULL,
+    genome_build = NULL,
+    species = NULL,
+    source_url = NULL,
+    indices = list(),
+    metadata = list(),
+    registry_file = ".capsule/reference_registry.json") {
   if (!file.exists(fasta_path)) {
     cli::cli_alert_danger("FASTA file not found: {.file {fasta_path}}")
     return(invisible(NULL))
@@ -60,9 +58,10 @@ track_reference_genome <- function(
   # Track FASTA
   cli::cli_alert_info("Tracking FASTA file...")
   track_data(fasta_path,
-             source = "reference",
-             source_url = source_url,
-             description = paste("Reference genome FASTA:", genome_build))
+    source = "reference",
+    source_url = source_url,
+    description = paste("Reference genome FASTA:", genome_build)
+  )
 
   # Track annotation files
   annotation_files <- list()
@@ -71,9 +70,10 @@ track_reference_genome <- function(
     if (file.exists(gtf_path)) {
       cli::cli_alert_info("Tracking GTF annotation...")
       track_data(gtf_path,
-                 source = "reference",
-                 source_url = source_url,
-                 description = paste("Gene annotation GTF:", genome_build))
+        source = "reference",
+        source_url = source_url,
+        description = paste("Gene annotation GTF:", genome_build)
+      )
       annotation_files$gtf <- gtf_path
     } else {
       cli::cli_alert_warning("GTF file not found: {.file {gtf_path}}")
@@ -84,9 +84,10 @@ track_reference_genome <- function(
     if (file.exists(gff_path)) {
       cli::cli_alert_info("Tracking GFF annotation...")
       track_data(gff_path,
-                 source = "reference",
-                 source_url = source_url,
-                 description = paste("Gene annotation GFF:", genome_build))
+        source = "reference",
+        source_url = source_url,
+        description = paste("Gene annotation GFF:", genome_build)
+      )
       annotation_files$gff <- gff_path
     } else {
       cli::cli_alert_warning("GFF file not found: {.file {gff_path}}")
@@ -105,8 +106,9 @@ track_reference_genome <- function(
       # Handle both files and directories
       if (file.exists(idx_path) || dir.exists(idx_path)) {
         track_data(idx_path,
-                   source = "reference",
-                   description = paste0(idx_name, " index for ", genome_build))
+          source = "reference",
+          description = paste0(idx_name, " index for ", genome_build)
+        )
         tracked_indices[[idx_name]] <- idx_path
         cli::cli_alert_success("Tracked {idx_name} index")
       } else {
@@ -173,8 +175,7 @@ track_reference_genome <- function(
 #' get_reference_info("GRCh38")
 #' }
 get_reference_info <- function(genome_build = NULL,
-                              registry_file = ".capsule/reference_registry.json") {
-
+                               registry_file = ".capsule/reference_registry.json") {
   registry <- .load_reference_registry(registry_file)
 
   if (is.null(registry$references) || length(registry$references) == 0) {
@@ -205,41 +206,43 @@ get_reference_info <- function(genome_build = NULL,
 #' @return List containing FASTA statistics
 #' @keywords internal
 .get_fasta_stats <- function(fasta_path) {
+  stats <- tryCatch(
+    {
+      # Read first few lines to get a sense of the file
+      lines <- readLines(fasta_path, n = 10000, warn = FALSE)
 
-  stats <- tryCatch({
-    # Read first few lines to get a sense of the file
-    lines <- readLines(fasta_path, n = 10000, warn = FALSE)
+      # Count sequences (lines starting with >)
+      n_sequences <- sum(grepl("^>", lines))
 
-    # Count sequences (lines starting with >)
-    n_sequences <- sum(grepl("^>", lines))
+      # If we read all sequences in first 10000 lines, we're good
+      # Otherwise, count all headers
+      if (lines[length(lines)] != "" && !grepl("^>", lines[length(lines)])) {
+        # Need to count all headers
+        n_sequences <- as.numeric(
+          system2("grep", c("-c", "'^>'", shQuote(fasta_path)),
+            stdout = TRUE, stderr = FALSE
+          )
+        )
+      }
 
-    # If we read all sequences in first 10000 lines, we're good
-    # Otherwise, count all headers
-    if (lines[length(lines)] != "" && !grepl("^>", lines[length(lines)])) {
-      # Need to count all headers
-      n_sequences <- as.numeric(
-        system2("grep", c("-c", "'^>'", shQuote(fasta_path)),
-                stdout = TRUE, stderr = FALSE)
+      # Get file size
+      file_size <- file.info(fasta_path)$size
+
+      list(
+        n_sequences = n_sequences,
+        file_size_bytes = file_size,
+        file_size_readable = .format_size(file_size)
+      )
+    },
+    error = function(e) {
+      list(
+        n_sequences = NA,
+        file_size_bytes = file.info(fasta_path)$size,
+        file_size_readable = .format_size(file.info(fasta_path)$size),
+        error = "Could not parse FASTA statistics"
       )
     }
-
-    # Get file size
-    file_size <- file.info(fasta_path)$size
-
-    list(
-      n_sequences = n_sequences,
-      file_size_bytes = file_size,
-      file_size_readable = .format_size(file_size)
-    )
-
-  }, error = function(e) {
-    list(
-      n_sequences = NA,
-      file_size_bytes = file.info(fasta_path)$size,
-      file_size_readable = .format_size(file.info(fasta_path)$size),
-      error = "Could not parse FASTA statistics"
-    )
-  })
+  )
 
   return(stats)
 }

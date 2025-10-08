@@ -21,7 +21,6 @@
 #' }
 track_external_tools <- function(tools = NULL,
                                  registry_file = ".capsule/tools_registry.json") {
-
   # Common bioinformatics tools
   default_tools <- c(
     "samtools", "bcftools", "bedtools", "bwa", "bowtie2",
@@ -93,7 +92,6 @@ track_external_tools <- function(tools = NULL,
 #' }
 get_tool_versions <- function(tool_name = NULL,
                               registry_file = ".capsule/tools_registry.json") {
-
   registry <- .load_tools_registry(registry_file)
 
   if (is.null(registry$tools) || length(registry$tools) == 0) {
@@ -124,45 +122,47 @@ get_tool_versions <- function(tool_name = NULL,
 #' @return Character. Version string or "not installed"
 #' @keywords internal
 .get_tool_version <- function(tool) {
-  version <- tryCatch({
-    # Try different version flags
-    version_flags <- c("--version", "-v", "-version", "version", "-V")
+  version <- tryCatch(
+    {
+      # Try different version flags
+      version_flags <- c("--version", "-v", "-version", "version", "-V")
 
-    for (flag in version_flags) {
-      result <- suppressWarnings(
-        system2(tool, flag, stdout = TRUE, stderr = TRUE)
-      )
+      for (flag in version_flags) {
+        result <- suppressWarnings(
+          system2(tool, flag, stdout = TRUE, stderr = TRUE)
+        )
 
-      # Check if command succeeded
-      status <- attr(result, "status")
-      if (!is.null(status) && status != 0) next
+        # Check if command succeeded
+        status <- attr(result, "status")
+        if (!is.null(status) && status != 0) next
 
-      # If we got output, extract version
-      if (length(result) > 0) {
-        # Return first line that looks like it has version info
-        version_line <- result[1]
+        # If we got output, extract version
+        if (length(result) > 0) {
+          # Return first line that looks like it has version info
+          version_line <- result[1]
 
-        # Clean up common patterns
-        version_line <- gsub("^.*version\\s+", "", version_line, ignore.case = TRUE)
-        version_line <- gsub("^.*v(\\d)", "\\1", version_line)
+          # Clean up common patterns
+          version_line <- gsub("^.*version\\s+", "", version_line, ignore.case = TRUE)
+          version_line <- gsub("^.*v(\\d)", "\\1", version_line)
 
-        return(trimws(version_line))
+          return(trimws(version_line))
+        }
       }
+
+      # If no version flag worked, at least confirm it's installed
+      test_result <- suppressWarnings(
+        system2("which", tool, stdout = TRUE, stderr = FALSE)
+      )
+      if (length(test_result) > 0 && !is.null(test_result)) {
+        return("installed (version unknown)")
+      }
+
+      return("not installed")
+    },
+    error = function(e) {
+      return("not installed")
     }
-
-    # If no version flag worked, at least confirm it's installed
-    test_result <- suppressWarnings(
-      system2("which", tool, stdout = TRUE, stderr = FALSE)
-    )
-    if (length(test_result) > 0 && !is.null(test_result)) {
-      return("installed (version unknown)")
-    }
-
-    return("not installed")
-
-  }, error = function(e) {
-    return("not installed")
-  })
+  )
 
   return(version)
 }
@@ -178,15 +178,18 @@ get_tool_versions <- function(tool_name = NULL,
 #' @return Character. Full path or NA
 #' @keywords internal
 .get_tool_path <- function(tool) {
-  path <- tryCatch({
-    result <- system2("which", tool, stdout = TRUE, stderr = FALSE)
-    if (length(result) > 0 && !is.null(attr(result, "status")) == FALSE) {
-      return(result[1])
+  path <- tryCatch(
+    {
+      result <- system2("which", tool, stdout = TRUE, stderr = FALSE)
+      if (length(result) > 0 && !is.null(attr(result, "status")) == FALSE) {
+        return(result[1])
+      }
+      return(NA_character_)
+    },
+    error = function(e) {
+      return(NA_character_)
     }
-    return(NA_character_)
-  }, error = function(e) {
-    return(NA_character_)
-  })
+  )
 
   return(path)
 }

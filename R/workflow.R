@@ -23,10 +23,9 @@
 #' init_capsule(use_renv = FALSE)
 #' }
 init_capsule <- function(project_path = ".",
-                          use_renv = TRUE,
-                          use_git = TRUE,
-                          create_gitignore = TRUE) {
-
+                         use_renv = TRUE,
+                         use_git = TRUE,
+                         create_gitignore = TRUE) {
   old_wd <- getwd()
   on.exit(setwd(old_wd))
   setwd(project_path)
@@ -120,7 +119,6 @@ snapshot_workflow <- function(snapshot_name = NULL,
                               generate_docker = TRUE,
                               generate_script = TRUE,
                               generate_report = TRUE) {
-
   if (is.null(snapshot_name)) {
     snapshot_name <- format(Sys.time(), "%Y%m%d_%H%M%S")
   }
@@ -154,30 +152,39 @@ snapshot_workflow <- function(snapshot_name = NULL,
   # Create renv lockfile
   cli::cli_alert_info("Creating renv lockfile...")
   renv_file <- file.path(snapshot_dir, "renv.lock")
-  tryCatch({
-    if (requireNamespace("renv", quietly = TRUE)) {
-      renv::snapshot(lockfile = renv_file, prompt = FALSE)
-      generated_files$renv_lock <- renv_file
+  tryCatch(
+    {
+      if (requireNamespace("renv", quietly = TRUE)) {
+        renv::snapshot(lockfile = renv_file, prompt = FALSE)
+        generated_files$renv_lock <- renv_file
+      }
+    },
+    error = function(e) {
+      cli::cli_alert_warning("Could not create renv lockfile: {e$message}")
     }
-  }, error = function(e) {
-    cli::cli_alert_warning("Could not create renv lockfile: {e$message}")
-  })
+  )
 
   # Copy registries
   cli::cli_alert_info("Copying tracking registries...")
   if (file.exists(".capsule/data_registry.json")) {
-    file.copy(".capsule/data_registry.json",
-              file.path(snapshot_dir, "data_registry.json"))
+    file.copy(
+      ".capsule/data_registry.json",
+      file.path(snapshot_dir, "data_registry.json")
+    )
     generated_files$data_registry <- file.path(snapshot_dir, "data_registry.json")
   }
   if (file.exists(".capsule/param_registry.json")) {
-    file.copy(".capsule/param_registry.json",
-              file.path(snapshot_dir, "param_registry.json"))
+    file.copy(
+      ".capsule/param_registry.json",
+      file.path(snapshot_dir, "param_registry.json")
+    )
     generated_files$param_registry <- file.path(snapshot_dir, "param_registry.json")
   }
   if (file.exists(".capsule/seed_registry.json")) {
-    file.copy(".capsule/seed_registry.json",
-              file.path(snapshot_dir, "seed_registry.json"))
+    file.copy(
+      ".capsule/seed_registry.json",
+      file.path(snapshot_dir, "seed_registry.json")
+    )
     generated_files$seed_registry <- file.path(snapshot_dir, "seed_registry.json")
   }
 

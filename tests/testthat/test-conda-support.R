@@ -9,11 +9,14 @@ test_that("conda environment tracking handles missing conda gracefully", {
   registry_file <- file.path(temp_dir, "conda_registry.json")
 
   # This may return NULL if conda is not available - that's OK
-  result <- tryCatch({
-    track_conda_env(registry_file = registry_file)
-  }, error = function(e) {
-    NULL
-  })
+  result <- tryCatch(
+    {
+      track_conda_env(registry_file = registry_file)
+    },
+    error = function(e) {
+      NULL
+    }
+  )
 
   # Test should pass whether conda is available or not
   expect_true(is.null(result) || is.list(result))

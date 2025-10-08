@@ -17,7 +17,6 @@
 #' }
 export_for_nextflow <- function(output_file = "capsule_manifest.json",
                                 include_checksums = TRUE) {
-
   cli::cli_alert_info("Exporting Capsule data for Nextflow...")
 
   # Gather all tracking data
@@ -42,7 +41,7 @@ export_for_nextflow <- function(output_file = "capsule_manifest.json",
       )
       if (include_checksums) {
         file_info$checksum <- d$checksum
-        file_info$checksum_algorithm = d$checksum_algorithm
+        file_info$checksum_algorithm <- d$checksum_algorithm
       }
       file_info
     })
@@ -90,7 +89,6 @@ export_for_nextflow <- function(output_file = "capsule_manifest.json",
 #' }
 export_for_snakemake <- function(output_file = "capsule_config.yaml",
                                  include_checksums = TRUE) {
-
   cli::cli_alert_info("Exporting Capsule data for Snakemake...")
 
   # Gather all tracking data
@@ -175,7 +173,6 @@ export_for_snakemake <- function(output_file = "capsule_config.yaml",
 #' export_for_wdl("reproflow_inputs.json")
 #' }
 export_for_wdl <- function(output_file = "capsule_inputs.json") {
-
   cli::cli_alert_info("Exporting Capsule data for WDL...")
 
   # Gather all tracking data
@@ -234,7 +231,6 @@ export_for_wdl <- function(output_file = "capsule_inputs.json") {
 #' export_for_cwl("reproflow_cwl_inputs.yml")
 #' }
 export_for_cwl <- function(output_file = "capsule_cwl_inputs.yml") {
-
   cli::cli_alert_info("Exporting Capsule data for CWL...")
 
   # Gather all tracking data

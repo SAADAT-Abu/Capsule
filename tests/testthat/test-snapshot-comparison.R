@@ -9,10 +9,13 @@ test_that("list_snapshots works with no snapshots", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize without creating snapshots
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -28,10 +31,13 @@ test_that("list_snapshots returns snapshot information", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize and create a snapshot
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -57,10 +63,13 @@ test_that("compare_snapshots creates comparison report", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -77,7 +86,7 @@ test_that("compare_snapshots creates comparison report", {
   )
 
   # Modify and create second snapshot
-  track_params(list(alpha = 0.01), "test")  # Changed
+  track_params(list(alpha = 0.01), "test") # Changed
   suppressMessages(
     snapshot_workflow(
       snapshot_name = "snap2",
@@ -107,10 +116,13 @@ test_that("compare_snapshots handles non-existent snapshots", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
 
@@ -127,10 +139,13 @@ test_that("comparison detects parameter changes", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -147,7 +162,7 @@ test_that("comparison detects parameter changes", {
   )
 
   # Snapshot 2 with different params
-  track_params(list(x = 1, y = 3), "analysis1")  # y changed
+  track_params(list(x = 1, y = 3), "analysis1") # y changed
   suppressMessages(
     snapshot_workflow(
       snapshot_name = "s2",

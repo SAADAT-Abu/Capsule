@@ -48,7 +48,7 @@ test_that("generate_singularity handles system dependencies", {
 
 test_that("generate_singularity build script is executable", {
   skip_on_cran()
-  skip_on_os("windows")  # Unix file permissions only
+  skip_on_os("windows") # Unix file permissions only
 
   temp_dir <- tempfile("sing_test_")
   dir.create(temp_dir, recursive = TRUE)

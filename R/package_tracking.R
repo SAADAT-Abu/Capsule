@@ -22,8 +22,7 @@
 #' snapshot_packages("packages.json", only_attached = TRUE)
 #' }
 snapshot_packages <- function(output_file = NULL, include_dependencies = TRUE,
-                               only_attached = FALSE) {
-
+                              only_attached = FALSE) {
   if (only_attached) {
     # Get only attached packages
     attached <- names(sessionInfo()$otherPkgs)
@@ -94,7 +93,9 @@ snapshot_packages <- function(output_file = NULL, include_dependencies = TRUE,
 #' @return Character vector of package names
 #' @keywords internal
 .parse_deps <- function(dep_string) {
-  if (is.null(dep_string) || is.na(dep_string) || dep_string == "") return(character(0))
+  if (is.null(dep_string) || is.na(dep_string) || dep_string == "") {
+    return(character(0))
+  }
 
   # Remove version specifications
   deps <- strsplit(dep_string, ",")[[1]]
@@ -152,7 +153,6 @@ snapshot_packages <- function(output_file = NULL, include_dependencies = TRUE,
 #' create_renv_lockfile("renv.lock")
 #' }
 create_renv_lockfile <- function(output_file = "renv.lock", project_path = ".") {
-
   if (!requireNamespace("renv", quietly = TRUE)) {
     cli::cli_alert_warning("renv package not installed. Installing now...")
     utils::install.packages("renv")
@@ -163,12 +163,15 @@ create_renv_lockfile <- function(output_file = "renv.lock", project_path = ".") 
   on.exit(setwd(old_wd))
 
   # Create snapshot
-  tryCatch({
-    renv::snapshot(lockfile = output_file, prompt = FALSE)
-    cli::cli_alert_success("renv lockfile created at {.file {output_file}}")
-  }, error = function(e) {
-    cli::cli_alert_danger("Failed to create renv lockfile: {e$message}")
-  })
+  tryCatch(
+    {
+      renv::snapshot(lockfile = output_file, prompt = FALSE)
+      cli::cli_alert_success("renv lockfile created at {.file {output_file}}")
+    },
+    error = function(e) {
+      cli::cli_alert_danger("Failed to create renv lockfile: {e$message}")
+    }
+  )
 
   invisible(output_file)
 }

@@ -9,10 +9,13 @@ test_that("export_for_nextflow creates valid JSON", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize and add some data
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -38,10 +41,13 @@ test_that("export_for_snakemake creates valid YAML", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize and add some data
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -66,10 +72,13 @@ test_that("export_for_wdl creates valid JSON", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize and add some data
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -93,10 +102,13 @@ test_that("export_for_cwl creates valid YAML", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize and add some data
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -119,10 +131,13 @@ test_that("pipeline exports include data files when present", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Initialize
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))

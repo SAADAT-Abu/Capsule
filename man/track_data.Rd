@@ -43,18 +43,21 @@ sources, timestamps, and metadata. Supports fast hashing for large files.
 \dontrun{
 # Track a downloaded dataset
 track_data("data/mydata.csv",
-           source = "downloaded",
-           source_url = "https://example.com/data.csv",
-           description = "Customer data from API")
+  source = "downloaded",
+  source_url = "https://example.com/data.csv",
+  description = "Customer data from API"
+)
 
 # Track generated data
 track_data("results/simulation.rds",
-           source = "generated",
-           description = "Monte Carlo simulation results")
+  source = "generated",
+  description = "Monte Carlo simulation results"
+)
 
 # Track large file with fast hashing
 track_data("data/large_file.bam",
-           source = "generated",
-           fast_hash = TRUE)
+  source = "generated",
+  fast_hash = TRUE
+)
 }
 }

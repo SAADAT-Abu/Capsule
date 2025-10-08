@@ -26,14 +26,14 @@ Capsule is a comprehensive reproducibility framework specifically designed for *
 
 **The Solution:**
 Capsule **automatically** tracks all of this:
-- ✅ External bioinformatics tools (samtools, STAR, BWA, etc.) with versions
-- ✅ Conda/Mamba environments with full package specs
-- ✅ Reference genomes, annotations, and aligner indices
-- ✅ Large files with fast checksumming (xxHash64, 10-100x faster)
-- ✅ R packages, parameters, random seeds, and session info
-- ✅ System libraries, hardware specs (CPU, RAM, GPU)
-- ✅ Generates Docker AND Singularity containers
-- ✅ Exports to Nextflow, Snakemake, WDL, and CWL formats
+-  External bioinformatics tools (samtools, STAR, BWA, etc.) with versions
+-  Conda/Mamba environments with full package specs
+-  Reference genomes, annotations, and aligner indices
+-  Large files with fast checksumming (xxHash64, 10-100x faster)
+-  R packages, parameters, random seeds, and session info
+-  System libraries, hardware specs (CPU, RAM, GPU)
+-  Generates Docker AND Singularity containers
+-  Exports to Nextflow, Snakemake, WDL, and CWL formats
 
 ---
 
@@ -95,7 +95,7 @@ analysis_params <- list(
   star_genome_dir = "ref/STAR_index",
   star_out_filter_mismatch_n_max = 10,
 
-  # Quantification parameters
+  # Quantifiprintion parameters
   feature_counts_threads = 8,
   min_mapping_quality = 30,
 
@@ -129,7 +129,7 @@ track_reference_genome(
 )
 
 # Simulate RNA-seq data for demonstration
-cat("\n=== Simulating RNA-seq Data ===\n")
+print("\n=== Simulating RNA-seq Data ===\n")
 
 # Create directories
 dir.create("data", showWarnings = FALSE)
@@ -183,11 +183,11 @@ track_data(
   )
 )
 
-cat("Simulated count matrix with", n_genes, "genes and", n_samples, "samples\n")
-cat("Including", length(de_genes_idx), "differentially expressed genes\n\n")
+print("Simulated count matrix with", n_genes, "genes and", n_samples, "samples\n")
+print("Including", length(de_genes_idx), "differentially expressed genes\n\n")
 
 # Perform differential expression analysis (simplified)
-cat("=== Differential Expression Analysis ===\n")
+print("=== Differential Expression Analysis ===\n")
 
 # Calculate means
 control_mean <- rowMeans(count_matrix[, 2:4])
@@ -228,11 +228,11 @@ n_significant <- sum(de_results$significant)
 n_upregulated <- sum(de_results$significant & de_results$log2_fold_change > 0)
 n_downregulated <- sum(de_results$significant & de_results$log2_fold_change < 0)
 
-cat("\nResults Summary:\n")
-cat("  Total genes analyzed:", n_genes, "\n")
-cat("  Significant genes:", n_significant, "\n")
-cat("  Upregulated:", n_upregulated, "\n")
-cat("  Downregulated:", n_downregulated, "\n\n")
+print("\nResults Summary:\n")
+print("  Total genes analyzed:", n_genes, "\n")
+print("  Significant genes:", n_significant, "\n")
+print("  Upregulated:", n_upregulated, "\n")
+print("  Downregulated:", n_downregulated, "\n\n")
 
 # Create visualization (simple volcano plot data)
 volcano_data <- data.frame(
@@ -256,10 +256,10 @@ abline(h = -log10(analysis_params$p_value_threshold), lty = 2)
 abline(v = c(-analysis_params$log2fc_threshold, analysis_params$log2fc_threshold), lty = 2)
 dev.off()
 
-cat("Volcano plot saved to:", plot_file, "\n\n")
+print("Volcano plot saved to:", plot_file, "\n\n")
 
 # Create comprehensive snapshot
-cat("=== Creating Workflow Snapshot ===\n")
+print("=== Creating Workflow Snapshot ===\n")
 snapshot_files <- snapshot_workflow(
   snapshot_name = "rna_seq_analysis_v1",
   analysis_name = "rna_seq_de",
@@ -270,7 +270,7 @@ snapshot_files <- snapshot_workflow(
   generate_report = TRUE
 )
 
-cat("\n=== Exporting for Workflow Managers ===\n")
+print("\n=== Exporting for Workflow Managers ===\n")
 
 # Export for Nextflow
 export_for_nextflow("nextflow_manifest.json")
@@ -282,34 +282,34 @@ export_for_snakemake("snakemake_config.yaml")
 export_for_wdl("wdl_inputs.json")
 
 # Generate Singularity container (for HPC)
-cat("\n=== Generating HPC Container ===\n")
+print("\n=== Generating HPC Container ===\n")
 generate_singularity(
   output_dir = "singularity",
   project_name = "rna_seq_analysis",
   system_deps = c("samtools", "bwa")
 )
 
-cat("\n" , rep("=", 60), "\n", sep = "")
-cat("RNA-seq Analysis Complete!\n")
-cat(rep("=", 60), "\n", sep = "")
-cat("\nAll reproducibility artifacts generated in:\n")
-cat("  .capsule/snapshots/rna_seq_analysis_v1/\n\n")
+print("\n" , rep("=", 60), "\n", sep = "")
+print("RNA-seq Analysis Complete!\n")
+print(rep("=", 60), "\n", sep = "")
+print("\nAll reproducibility artifacts generated in:\n")
+print("  .capsule/snapshots/rna_seq_analysis_v1/\n\n")
 
-cat("To reproduce this analysis:\n")
-cat("  1. Use Docker:\n")
-cat("     cd .capsule/snapshots/rna_seq_analysis_v1/docker\n")
-cat("     docker-compose up\n\n")
-cat("  2. Use Singularity (HPC):\n")
-cat("     cd singularity\n")
-cat("     sudo bash build_singularity.sh\n\n")
-cat("  3. Use Nextflow:\n")
-cat("     nextflow run pipeline.nf -params-file nextflow_manifest.json\n\n")
+print("To reproduce this analysis:\n")
+print("  1. Use Docker:\n")
+print("     cd .capsule/snapshots/rna_seq_analysis_v1/docker\n")
+print("     docker-compose up\n\n")
+print("  2. Use Singularity (HPC):\n")
+print("     cd singularity\n")
+print("     sudo bash build_singularity.sh\n\n")
+print("  3. Use Nextflow:\n")
+print("     nextflow run pipeline.nf -params-file nextflow_manifest.json\n\n")
 
 # Verify all tracked data
-cat("=== Data Integrity Check ===\n")
+print("=== Data Integrity Check ===\n")
 verify_data()
 
-cat("\n✓ Analysis complete with full reproducibility!\n\n")
+print("\n✓ Analysis complete with full reproducibility!\n\n")
 ```
 
 ---
@@ -409,7 +409,7 @@ snapshot_packages("packages.json")
 create_renv_lockfile("renv.lock")
 ```
 
-### 🐳 Containerization
+### Containerization
 
 #### Docker
 
@@ -431,7 +431,7 @@ generate_singularity(
 )
 ```
 
-### 🔄 Workflow Manager Integration
+### Workflow Manager Integration
 
 ```r
 # Nextflow
@@ -447,7 +447,7 @@ export_for_wdl("inputs.json")
 export_for_cwl("inputs.yml")
 ```
 
-### 📊 Snapshot Management
+### Snapshot Management
 
 ```r
 # Create snapshot
@@ -512,24 +512,9 @@ After running `snapshot_workflow()`, you'll have:
 
 ---
 
-## Requirements
-
-- **R** ≥ 4.0.0
-- **Dependencies:** renv, jsonlite, digest, yaml, cli, rlang, utils
-
-### Optional Dependencies
-
-- **conda/mamba** - For environment tracking
-- **Docker** - For Docker container generation
-- **Singularity/Apptainer** - For HPC container generation
-- **Workflow managers** - Nextflow, Snakemake, WDL, CWL
-
----
-
 ## Support & Contributing
 
 - **Issues:** [GitHub Issues](https://github.com/SAADAT-Abu/Capsule/issues)
-- **Email:** saadatabu1996@gmail.com
 - **Contributing:** Pull requests welcome!
 
 ---

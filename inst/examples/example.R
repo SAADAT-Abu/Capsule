@@ -79,8 +79,8 @@ counts_matrix <- matrix(
 # Add differential expression (100 true DE genes)
 de_gene_idx <- sample(1:n_genes, 100)
 fc <- runif(100, min = 2, max = 5)  # Fold changes between 2-5x
-for (i in 1:100) {
-  counts_matrix[de_gene_idx[i], 7:12] <- 
+for (i in seq_len(100)) {
+  counts_matrix[de_gene_idx[i], 7:12] <-
     round(counts_matrix[de_gene_idx[i], 7:12] * fc[i])
 }
 
@@ -327,7 +327,7 @@ if (file.exists(repro_script)) {
   lines <- readLines(repro_script, n = 25)
   print("  First 20 lines:\n")
   print("  ", paste(rep("-", 70), collapse = ""), "\n", sep = "")
-  for (i in 1:min(20, length(lines))) {
+  for (i in seq_len(min(20, length(lines)))) {
     print("  ", lines[i], "\n", sep = "")
   }
   print("  ", paste(rep("-", 70), collapse = ""), "\n", sep = "")
@@ -338,7 +338,7 @@ dockerfile <- file.path(snapshot_dir, "docker/Dockerfile")
 if (file.exists(dockerfile)) {
   lines <- readLines(dockerfile, n = 15)
   print("  Dockerfile preview:\n")
-  for (i in 1:min(10, length(lines))) {
+  for (i in seq_len(min(10, length(lines)))) {
     print("  ", lines[i], "\n", sep = "")
   }
 }

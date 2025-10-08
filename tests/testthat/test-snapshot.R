@@ -14,10 +14,13 @@ test_that("snapshot_workflow creates a complete snapshot of the workflow", {
   setwd(temp_proj_dir)
 
   # 2. Ensure cleanup happens even if tests fail
-  on.exit({
-    setwd(original_wd)
-    unlink(temp_proj_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(original_wd)
+      unlink(temp_proj_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # 3. Initialize Capsule in the temp directory (disable git/renv for speed)
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
@@ -76,10 +79,13 @@ test_that("snapshot_workflow fails gracefully with a non-existent source script"
   dir.create(temp_proj_dir, recursive = TRUE)
   original_wd <- getwd()
   setwd(temp_proj_dir)
-  on.exit({
-    setwd(original_wd)
-    unlink(temp_proj_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(original_wd)
+      unlink(temp_proj_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # 2. Initialize Capsule
   suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))

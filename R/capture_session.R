@@ -62,10 +62,11 @@ capture_session <- function(output_file = NULL, format = c("json", "yaml", "rds"
     dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
 
     switch(format,
-           json = jsonlite::write_json(session_info, output_file,
-                                       auto_unbox = TRUE, pretty = TRUE),
-           yaml = yaml::write_yaml(session_info, output_file),
-           rds = saveRDS(session_info, output_file)
+      json = jsonlite::write_json(session_info, output_file,
+        auto_unbox = TRUE, pretty = TRUE
+      ),
+      yaml = yaml::write_yaml(session_info, output_file),
+      rds = saveRDS(session_info, output_file)
     )
 
     cli::cli_alert_success("Session info saved to {.file {output_file}}")
@@ -85,7 +86,9 @@ capture_session <- function(output_file = NULL, format = c("json", "yaml", "rds"
 #' @return List of package details
 #' @keywords internal
 .extract_package_info <- function(pkg_list) {
-  if (is.null(pkg_list)) return(list())
+  if (is.null(pkg_list)) {
+    return(list())
+  }
 
   lapply(pkg_list, function(pkg) {
     list(
@@ -121,7 +124,6 @@ capture_session <- function(output_file = NULL, format = c("json", "yaml", "rds"
 #' }
 capture_environment <- function(output_file = NULL, include_values = FALSE,
                                 max_size = 1024 * 1024) {
-
   # Get all objects in global environment
   obj_names <- ls(envir = .GlobalEnv, all.names = FALSE)
 
@@ -180,7 +182,6 @@ capture_environment <- function(output_file = NULL, include_values = FALSE,
 #' capture_system_libraries("system_libs.json")
 #' }
 capture_system_libraries <- function(output_file = NULL) {
-
   sys_libs <- list(
     timestamp = Sys.time(),
     os = Sys.info()["sysname"],
@@ -200,7 +201,6 @@ capture_system_libraries <- function(output_file = NULL) {
 
   # Linux/Mac library detection
   if (Sys.info()["sysname"] %in% c("Linux", "Darwin")) {
-
     # Check common libraries using pkg-config
     libs_to_check <- c(
       "libcurl", "libxml-2.0", "openssl", "libcrypto",
@@ -208,17 +208,21 @@ capture_system_libraries <- function(output_file = NULL) {
     )
 
     for (lib in libs_to_check) {
-      version <- tryCatch({
-        result <- system2("pkg-config", c("--modversion", lib),
-                         stdout = TRUE, stderr = FALSE)
-        if (!is.null(attr(result, "status")) && attr(result, "status") != 0) {
-          "not found via pkg-config"
-        } else {
-          result[1]
+      version <- tryCatch(
+        {
+          result <- system2("pkg-config", c("--modversion", lib),
+            stdout = TRUE, stderr = FALSE
+          )
+          if (!is.null(attr(result, "status")) && attr(result, "status") != 0) {
+            "not found via pkg-config"
+          } else {
+            result[1]
+          }
+        },
+        error = function(e) {
+          "unknown"
         }
-      }, error = function(e) {
-        "unknown"
-      })
+      )
 
       # Clean lib name for list element
       clean_name <- gsub("[.-]", "_", lib)
@@ -230,11 +234,14 @@ capture_system_libraries <- function(output_file = NULL) {
       ldconfig_libs <- c("libopenblas", "libmkl", "libatlas")
 
       for (lib in ldconfig_libs) {
-        detected <- tryCatch({
-          result <- system2("ldconfig", c("-p"), stdout = TRUE, stderr = FALSE)
-          matches <- grep(lib, result, value = TRUE)
-          if (length(matches) > 0) "installed" else "not found"
-        }, error = function(e) "unknown")
+        detected <- tryCatch(
+          {
+            result <- system2("ldconfig", c("-p"), stdout = TRUE, stderr = FALSE)
+            matches <- grep(lib, result, value = TRUE)
+            if (length(matches) > 0) "installed" else "not found"
+          },
+          error = function(e) "unknown"
+        )
 
         clean_name <- gsub("[.-]", "_", lib)
         sys_libs[[clean_name]] <- detected
@@ -248,9 +255,12 @@ capture_system_libraries <- function(output_file = NULL) {
   }
 
   # Compiler information
-  sys_libs$compiler <- tryCatch({
-    R.version$cxx
-  }, error = function(e) "unknown")
+  sys_libs$compiler <- tryCatch(
+    {
+      R.version$cxx
+    },
+    error = function(e) "unknown"
+  )
 
   if (!is.null(output_file)) {
     dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)
@@ -279,7 +289,6 @@ capture_system_libraries <- function(output_file = NULL) {
 #' capture_hardware("hardware_info.json")
 #' }
 capture_hardware <- function(output_file = NULL) {
-
   hw_info <- list(
     timestamp = Sys.time(),
     hostname = Sys.info()["nodename"],
@@ -288,83 +297,98 @@ capture_hardware <- function(output_file = NULL) {
 
   # CPU info - Linux
   if (Sys.info()["sysname"] == "Linux") {
-    cpu_info <- tryCatch({
-      if (file.exists("/proc/cpuinfo")) {
-        cpuinfo <- readLines("/proc/cpuinfo")
+    cpu_info <- tryCatch(
+      {
+        if (file.exists("/proc/cpuinfo")) {
+          cpuinfo <- readLines("/proc/cpuinfo")
 
-        # Model name
-        model_line <- grep("model name", cpuinfo, value = TRUE)
-        model <- if (length(model_line) > 0) {
-          gsub(".*:\\s+", "", model_line[1])
+          # Model name
+          model_line <- grep("model name", cpuinfo, value = TRUE)
+          model <- if (length(model_line) > 0) {
+            gsub(".*:\\s+", "", model_line[1])
+          } else {
+            "unknown"
+          }
+
+          # Core count
+          cores <- tryCatch(
+            {
+              as.numeric(system("nproc", intern = TRUE))
+            },
+            error = function(e) {
+              length(grep("processor", cpuinfo))
+            }
+          )
+
+          list(
+            model = model,
+            cores = cores,
+            threads = length(grep("processor", cpuinfo))
+          )
         } else {
-          "unknown"
+          list(error = "Could not read /proc/cpuinfo")
         }
-
-        # Core count
-        cores <- tryCatch({
-          as.numeric(system("nproc", intern = TRUE))
-        }, error = function(e) {
-          length(grep("processor", cpuinfo))
-        })
-
-        list(
-          model = model,
-          cores = cores,
-          threads = length(grep("processor", cpuinfo))
-        )
-      } else {
-        list(error = "Could not read /proc/cpuinfo")
+      },
+      error = function(e) {
+        list(error = paste("CPU detection failed:", e$message))
       }
-    }, error = function(e) {
-      list(error = paste("CPU detection failed:", e$message))
-    })
+    )
 
     hw_info$cpu <- cpu_info
 
     # Memory info
-    mem_info <- tryCatch({
-      if (file.exists("/proc/meminfo")) {
-        meminfo <- readLines("/proc/meminfo")
-        total_line <- grep("MemTotal", meminfo, value = TRUE)
-        total_kb <- as.numeric(gsub(".*:\\s+(\\d+).*", "\\1", total_line))
+    mem_info <- tryCatch(
+      {
+        if (file.exists("/proc/meminfo")) {
+          meminfo <- readLines("/proc/meminfo")
+          total_line <- grep("MemTotal", meminfo, value = TRUE)
+          total_kb <- as.numeric(gsub(".*:\\s+(\\d+).*", "\\1", total_line))
 
-        list(
-          total_kb = total_kb,
-          total_gb = round(total_kb / (1024^2), 2)
-        )
-      } else {
-        list(error = "Could not read /proc/meminfo")
+          list(
+            total_kb = total_kb,
+            total_gb = round(total_kb / (1024^2), 2)
+          )
+        } else {
+          list(error = "Could not read /proc/meminfo")
+        }
+      },
+      error = function(e) {
+        list(error = paste("Memory detection failed:", e$message))
       }
-    }, error = function(e) {
-      list(error = paste("Memory detection failed:", e$message))
-    })
+    )
 
     hw_info$memory <- mem_info
   }
 
   # macOS
   if (Sys.info()["sysname"] == "Darwin") {
-    cpu_info <- tryCatch({
-      list(
-        model = system("sysctl -n machdep.cpu.brand_string", intern = TRUE),
-        cores = as.numeric(system("sysctl -n hw.physicalcpu", intern = TRUE)),
-        threads = as.numeric(system("sysctl -n hw.logicalcpu", intern = TRUE))
-      )
-    }, error = function(e) {
-      list(error = paste("CPU detection failed:", e$message))
-    })
+    cpu_info <- tryCatch(
+      {
+        list(
+          model = system("sysctl -n machdep.cpu.brand_string", intern = TRUE),
+          cores = as.numeric(system("sysctl -n hw.physicalcpu", intern = TRUE)),
+          threads = as.numeric(system("sysctl -n hw.logicalcpu", intern = TRUE))
+        )
+      },
+      error = function(e) {
+        list(error = paste("CPU detection failed:", e$message))
+      }
+    )
 
     hw_info$cpu <- cpu_info
 
-    mem_info <- tryCatch({
-      mem_bytes <- as.numeric(system("sysctl -n hw.memsize", intern = TRUE))
-      list(
-        total_bytes = mem_bytes,
-        total_gb = round(mem_bytes / (1024^3), 2)
-      )
-    }, error = function(e) {
-      list(error = paste("Memory detection failed:", e$message))
-    })
+    mem_info <- tryCatch(
+      {
+        mem_bytes <- as.numeric(system("sysctl -n hw.memsize", intern = TRUE))
+        list(
+          total_bytes = mem_bytes,
+          total_gb = round(mem_bytes / (1024^3), 2)
+        )
+      },
+      error = function(e) {
+        list(error = paste("Memory detection failed:", e$message))
+      }
+    )
 
     hw_info$memory <- mem_info
   }
@@ -376,54 +400,63 @@ capture_hardware <- function(output_file = NULL) {
   }
 
   # GPU detection (NVIDIA)
-  gpu_info <- tryCatch({
-    nvidia_smi <- system2("nvidia-smi",
-                         c("--query-gpu=name,driver_version,memory.total",
-                           "--format=csv,noheader"),
-                         stdout = TRUE, stderr = FALSE)
+  gpu_info <- tryCatch(
+    {
+      nvidia_smi <- system2("nvidia-smi",
+        c(
+          "--query-gpu=name,driver_version,memory.total",
+          "--format=csv,noheader"
+        ),
+        stdout = TRUE, stderr = FALSE
+      )
 
-    status <- attr(nvidia_smi, "status")
-    if (!is.null(status) && status != 0) {
-      return(list(nvidia = "not detected"))
+      status <- attr(nvidia_smi, "status")
+      if (!is.null(status) && status != 0) {
+        return(list(nvidia = "not detected"))
+      }
+
+      if (length(nvidia_smi) > 0) {
+        # Parse CSV output
+        gpus <- lapply(nvidia_smi, function(line) {
+          parts <- strsplit(line, ",")[[1]]
+          if (length(parts) >= 3) {
+            list(
+              name = trimws(parts[1]),
+              driver_version = trimws(parts[2]),
+              memory_total = trimws(parts[3])
+            )
+          } else {
+            line
+          }
+        })
+
+        list(nvidia = gpus, count = length(nvidia_smi))
+      } else {
+        list(nvidia = "not detected")
+      }
+    },
+    error = function(e) {
+      list(nvidia = "not detected or nvidia-smi not available")
     }
-
-    if (length(nvidia_smi) > 0) {
-      # Parse CSV output
-      gpus <- lapply(nvidia_smi, function(line) {
-        parts <- strsplit(line, ",")[[1]]
-        if (length(parts) >= 3) {
-          list(
-            name = trimws(parts[1]),
-            driver_version = trimws(parts[2]),
-            memory_total = trimws(parts[3])
-          )
-        } else {
-          line
-        }
-      })
-
-      list(nvidia = gpus, count = length(nvidia_smi))
-    } else {
-      list(nvidia = "not detected")
-    }
-  }, error = function(e) {
-    list(nvidia = "not detected or nvidia-smi not available")
-  })
+  )
 
   hw_info$gpu <- gpu_info
 
   # Disk info
-  hw_info$disk_space <- tryCatch({
-    df_output <- system2("df", c("-h", "."), stdout = TRUE, stderr = FALSE)
-    if (length(df_output) > 1) {
-      # Parse df output
-      header <- df_output[1]
-      data <- df_output[2]
-      list(df_current_dir = data)
-    } else {
-      "unknown"
-    }
-  }, error = function(e) "unknown")
+  hw_info$disk_space <- tryCatch(
+    {
+      df_output <- system2("df", c("-h", "."), stdout = TRUE, stderr = FALSE)
+      if (length(df_output) > 1) {
+        # Parse df output
+        header <- df_output[1]
+        data <- df_output[2]
+        list(df_current_dir = data)
+      } else {
+        "unknown"
+      }
+    },
+    error = function(e) "unknown"
+  )
 
   if (!is.null(output_file)) {
     dir.create(dirname(output_file), recursive = TRUE, showWarnings = FALSE)

@@ -25,12 +25,11 @@
 #' )
 #' }
 generate_repro_script <- function(script_file,
-                                   source_script = NULL,
-                                   analysis_name = "analysis",
-                                   include_renv = TRUE,
-                                   include_data_check = TRUE,
-                                   include_session_info = TRUE) {
-
+                                  source_script = NULL,
+                                  analysis_name = "analysis",
+                                  include_renv = TRUE,
+                                  include_data_check = TRUE,
+                                  include_session_info = TRUE) {
   # Build script content
   script_lines <- c(
     "#!/usr/bin/env Rscript",
@@ -46,7 +45,8 @@ generate_repro_script <- function(script_file,
 
   # Add renv initialization
   if (include_renv) {
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       "# Initialize renv for package management",
       "if (!requireNamespace('renv', quietly = TRUE)) {",
       "  install.packages('renv')",
@@ -57,7 +57,8 @@ generate_repro_script <- function(script_file,
   }
 
   # Add Capsule initialization
-  script_lines <- c(script_lines,
+  script_lines <- c(
+    script_lines,
     "# Load Capsule",
     "library(Capsule)",
     ""
@@ -67,7 +68,8 @@ generate_repro_script <- function(script_file,
   seed_registry <- .load_seed_registry(".capsule/seed_registry.json")
   if (analysis_name %in% names(seed_registry$seeds)) {
     seed <- seed_registry$seeds[[analysis_name]]$seed
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       "# Restore random seed",
       paste0("set.seed(", seed, ")"),
       ""
@@ -78,7 +80,8 @@ generate_repro_script <- function(script_file,
   param_registry <- .load_param_registry(".capsule/param_registry.json")
   if (analysis_name %in% names(param_registry$analyses)) {
     params <- param_registry$analyses[[analysis_name]]$parameters
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       "# Analysis parameters",
       "params <- list("
     )
@@ -86,11 +89,13 @@ generate_repro_script <- function(script_file,
       param <- params[[i]]
       value_str <- .format_r_value(param$value)
       comma <- if (i < length(params)) "," else ""
-      script_lines <- c(script_lines,
+      script_lines <- c(
+        script_lines,
         paste0("  ", param$name, " = ", value_str, comma)
       )
     }
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       ")",
       ""
     )
@@ -100,7 +105,8 @@ generate_repro_script <- function(script_file,
   if (include_data_check) {
     data_registry <- .load_registry(".capsule/data_registry.json")
     if (!is.null(data_registry$data) && length(data_registry$data) > 0) {
-      script_lines <- c(script_lines,
+      script_lines <- c(
+        script_lines,
         "# Verify data integrity",
         "cat('Verifying data files...\\n')",
         "if (!Capsule::verify_data()) {",
@@ -113,7 +119,8 @@ generate_repro_script <- function(script_file,
   }
 
   # Add main analysis code
-  script_lines <- c(script_lines,
+  script_lines <- c(
+    script_lines,
     "# ========================================",
     "# Main Analysis Code",
     "# ========================================",
@@ -128,7 +135,8 @@ generate_repro_script <- function(script_file,
       stop("Source script not found at path: ", source_script)
     }
   } else {
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       "# Insert your analysis code here",
       ""
     )
@@ -136,7 +144,8 @@ generate_repro_script <- function(script_file,
 
   # Add session info
   if (include_session_info) {
-    script_lines <- c(script_lines,
+    script_lines <- c(
+      script_lines,
       "",
       "# ========================================",
       "# Session Information",
@@ -182,7 +191,6 @@ generate_repro_script <- function(script_file,
 create_repro_report <- function(output_file = "reproducibility_report.md",
                                 analysis_name = NULL,
                                 include_package_list = TRUE) {
-
   report_lines <- c(
     paste("#", "Reproducibility Report"),
     "",
@@ -193,7 +201,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   )
 
   # R Environment Section
-  report_lines <- c(report_lines,
+  report_lines <- c(
+    report_lines,
     "## R Environment",
     "",
     paste("- **R Version:**", R.version.string),
@@ -204,7 +213,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
 
   # Session Info
   si <- sessionInfo()
-  report_lines <- c(report_lines,
+  report_lines <- c(
+    report_lines,
     "## Loaded Packages",
     ""
   )
@@ -212,7 +222,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   if (!is.null(si$otherPkgs)) {
     for (pkg_name in names(si$otherPkgs)) {
       pkg <- si$otherPkgs[[pkg_name]]
-      report_lines <- c(report_lines,
+      report_lines <- c(
+        report_lines,
         paste0("- **", pkg$Package, "** ", pkg$Version)
       )
     }
@@ -222,13 +233,15 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   # Data Files
   data_registry <- .load_registry(".capsule/data_registry.json")
   if (!is.null(data_registry$data) && length(data_registry$data) > 0) {
-    report_lines <- c(report_lines,
+    report_lines <- c(
+      report_lines,
       "## Data Files",
       ""
     )
     for (file_path in names(data_registry$data)) {
       data_info <- data_registry$data[[file_path]]
-      report_lines <- c(report_lines,
+      report_lines <- c(
+        report_lines,
         paste0("### ", basename(file_path)),
         "",
         paste("- **Path:**", file_path),
@@ -245,7 +258,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   # Parameters
   param_registry <- .load_param_registry(".capsule/param_registry.json")
   if (!is.null(param_registry$analyses) && length(param_registry$analyses) > 0) {
-    report_lines <- c(report_lines,
+    report_lines <- c(
+      report_lines,
       "## Analysis Parameters",
       ""
     )
@@ -257,7 +271,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
     }
 
     for (analysis in analyses_to_report) {
-      report_lines <- c(report_lines,
+      report_lines <- c(
+        report_lines,
         paste0("### ", analysis$analysis_name),
         ""
       )
@@ -265,7 +280,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
         report_lines <- c(report_lines, analysis$description, "")
       }
       for (param in analysis$parameters) {
-        report_lines <- c(report_lines,
+        report_lines <- c(
+          report_lines,
           paste0("- **", param$name, ":** ", .format_r_value(param$value))
         )
       }
@@ -276,7 +292,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   # Random Seeds
   seed_registry <- .load_seed_registry(".capsule/seed_registry.json")
   if (!is.null(seed_registry$seeds) && length(seed_registry$seeds) > 0) {
-    report_lines <- c(report_lines,
+    report_lines <- c(
+      report_lines,
       "## Random Seeds",
       ""
     )
@@ -288,7 +305,8 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
     }
 
     for (seed_info in seeds_to_report) {
-      report_lines <- c(report_lines,
+      report_lines <- c(
+        report_lines,
         paste0("### ", seed_info$analysis_name),
         "",
         paste("- **Seed:**", seed_info$seed),
@@ -302,17 +320,21 @@ create_repro_report <- function(output_file = "reproducibility_report.md",
   # Full package list if requested
   if (include_package_list) {
     installed <- as.data.frame(installed.packages())
-    report_lines <- c(report_lines,
+    report_lines <- c(
+      report_lines,
       "## All Installed Packages",
       "",
       "| Package | Version | Built |",
       "|---------|---------|-------|"
     )
     for (i in seq_len(nrow(installed))) {
-      report_lines <- c(report_lines,
-        paste0("| ", installed$Package[i], " | ",
-               installed$Version[i], " | ",
-               installed$Built[i], " |")
+      report_lines <- c(
+        report_lines,
+        paste0(
+          "| ", installed$Package[i], " | ",
+          installed$Version[i], " | ",
+          installed$Built[i], " |"
+        )
       )
     }
     report_lines <- c(report_lines, "")

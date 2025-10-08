@@ -25,10 +25,9 @@
 #' track_conda_env(use_mamba = TRUE)
 #' }
 track_conda_env <- function(env_name = NULL,
-                           output_file = "conda_environment.yml",
-                           use_mamba = FALSE,
-                           registry_file = ".capsule/conda_registry.json") {
-
+                            output_file = "conda_environment.yml",
+                            use_mamba = FALSE,
+                            registry_file = ".capsule/conda_registry.json") {
   # Determine which tool to use
   conda_cmd <- if (use_mamba) "mamba" else "conda"
 
@@ -56,13 +55,17 @@ track_conda_env <- function(env_name = NULL,
 
   # Export environment
   export_cmd <- paste(conda_cmd, "env export -n", env_name)
-  result <- tryCatch({
-    system2("bash", c("-c", shQuote(paste(export_cmd, ">", output_file))),
-            stdout = TRUE, stderr = TRUE)
-  }, error = function(e) {
-    cli::cli_alert_danger("Failed to export conda environment: {e$message}")
-    return(NULL)
-  })
+  result <- tryCatch(
+    {
+      system2("bash", c("-c", shQuote(paste(export_cmd, ">", output_file))),
+        stdout = TRUE, stderr = TRUE
+      )
+    },
+    error = function(e) {
+      cli::cli_alert_danger("Failed to export conda environment: {e$message}")
+      return(NULL)
+    }
+  )
 
   if (!file.exists(output_file)) {
     cli::cli_alert_danger("Failed to create environment file")
@@ -71,19 +74,26 @@ track_conda_env <- function(env_name = NULL,
 
   # Track the file with Capsule
   track_data(output_file,
-             source = "generated",
-             description = paste("Conda environment:", env_name))
+    source = "generated",
+    description = paste("Conda environment:", env_name)
+  )
 
   # Get conda version
-  conda_version <- tryCatch({
-    system2(conda_cmd, "--version", stdout = TRUE, stderr = TRUE)[1]
-  }, error = function(e) "unknown")
+  conda_version <- tryCatch(
+    {
+      system2(conda_cmd, "--version", stdout = TRUE, stderr = TRUE)[1]
+    },
+    error = function(e) "unknown"
+  )
 
   # Get environment info
-  env_list <- tryCatch({
-    result <- system2(conda_cmd, c("env", "list"), stdout = TRUE, stderr = TRUE)
-    grep(env_name, result, value = TRUE)[1]
-  }, error = function(e) "unknown location")
+  env_list <- tryCatch(
+    {
+      result <- system2(conda_cmd, c("env", "list"), stdout = TRUE, stderr = TRUE)
+      grep(env_name, result, value = TRUE)[1]
+    },
+    error = function(e) "unknown location"
+  )
 
   # Create environment record
   env_info <- list(
@@ -135,10 +145,9 @@ track_conda_env <- function(env_name = NULL,
 #' restore_conda_env("conda_environment.yml", force = TRUE)
 #' }
 restore_conda_env <- function(env_file = "conda_environment.yml",
-                             env_name = NULL,
-                             use_mamba = FALSE,
-                             force = FALSE) {
-
+                              env_name = NULL,
+                              use_mamba = FALSE,
+                              force = FALSE) {
   if (!file.exists(env_file)) {
     cli::cli_alert_danger("Environment file not found: {.file {env_file}}")
     return(invisible(FALSE))
@@ -159,14 +168,19 @@ restore_conda_env <- function(env_file = "conda_environment.yml",
 
   # Extract name from YAML if not provided
   if (is.null(env_name)) {
-    yaml_content <- tryCatch({
-      yaml::read_yaml(env_file)
-    }, error = function(e) {
-      cli::cli_alert_danger("Could not read YAML file: {e$message}")
-      return(NULL)
-    })
+    yaml_content <- tryCatch(
+      {
+        yaml::read_yaml(env_file)
+      },
+      error = function(e) {
+        cli::cli_alert_danger("Could not read YAML file: {e$message}")
+        return(NULL)
+      }
+    )
 
-    if (is.null(yaml_content)) return(invisible(FALSE))
+    if (is.null(yaml_content)) {
+      return(invisible(FALSE))
+    }
 
     env_name <- yaml_content$name
     if (is.null(env_name)) {
@@ -183,7 +197,8 @@ restore_conda_env <- function(env_file = "conda_environment.yml",
     if (force) {
       cli::cli_alert_warning("Removing existing environment: {env_name}")
       remove_result <- system2(conda_cmd, c("env", "remove", "-n", env_name, "-y"),
-                              stdout = TRUE, stderr = TRUE)
+        stdout = TRUE, stderr = TRUE
+      )
     } else {
       cli::cli_alert_danger("Environment already exists: {env_name}")
       cli::cli_alert_info("Use force = TRUE to recreate it")
@@ -226,7 +241,6 @@ restore_conda_env <- function(env_file = "conda_environment.yml",
 #' @export
 get_conda_env_info <- function(env_name = NULL,
                                registry_file = ".capsule/conda_registry.json") {
-
   registry <- .load_conda_registry(registry_file)
 
   if (is.null(registry$environments) || length(registry$environments) == 0) {

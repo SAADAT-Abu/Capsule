@@ -23,25 +23,27 @@
 #' \dontrun{
 #' # Track a downloaded dataset
 #' track_data("data/mydata.csv",
-#'            source = "downloaded",
-#'            source_url = "https://example.com/data.csv",
-#'            description = "Customer data from API")
+#'   source = "downloaded",
+#'   source_url = "https://example.com/data.csv",
+#'   description = "Customer data from API"
+#' )
 #'
 #' # Track generated data
 #' track_data("results/simulation.rds",
-#'            source = "generated",
-#'            description = "Monte Carlo simulation results")
+#'   source = "generated",
+#'   description = "Monte Carlo simulation results"
+#' )
 #'
 #' # Track large file with fast hashing
 #' track_data("data/large_file.bam",
-#'            source = "generated",
-#'            fast_hash = TRUE)
+#'   source = "generated",
+#'   fast_hash = TRUE
+#' )
 #' }
 track_data <- function(data_path, source = c("downloaded", "generated", "manual", "reference", "other"),
                        source_url = NULL, description = NULL, metadata = NULL,
                        fast_hash = TRUE, size_threshold_gb = 1,
                        registry_file = ".capsule/data_registry.json") {
-
   source <- match.arg(source)
 
   if (!file.exists(data_path) && !dir.exists(data_path)) {
@@ -117,7 +119,6 @@ track_data <- function(data_path, source = c("downloaded", "generated", "manual"
 #' verify_data()
 #' }
 verify_data <- function(data_path = NULL, registry_file = ".capsule/data_registry.json") {
-
   registry <- .load_registry(registry_file)
 
   if (is.null(registry$data) || length(registry$data) == 0) {
@@ -152,14 +153,14 @@ verify_data <- function(data_path = NULL, registry_file = ".capsule/data_registr
     original_algo <- if (!is.null(original_record$checksum_algorithm)) {
       original_record$checksum_algorithm
     } else {
-      "sha256"  # Legacy default
+      "sha256" # Legacy default
     }
 
     # Get original checksum (handle both old and new field names)
     original_checksum <- if (!is.null(original_record$checksum)) {
       original_record$checksum
     } else {
-      original_record$checksum_sha256  # Legacy field name
+      original_record$checksum_sha256 # Legacy field name
     }
 
     # Calculate current checksum with same algorithm
@@ -206,7 +207,6 @@ verify_data <- function(data_path = NULL, registry_file = ".capsule/data_registr
 #' all_lineage <- get_data_lineage()
 #' }
 get_data_lineage <- function(data_path = NULL, registry_file = ".capsule/data_registry.json") {
-
   registry <- .load_registry(registry_file)
 
   if (is.null(data_path)) {
@@ -297,19 +297,20 @@ get_data_lineage <- function(data_path = NULL, registry_file = ".capsule/data_re
 #' @return List with checksum and algorithm
 #' @keywords internal
 .calculate_checksum <- function(file_path, fast_hash, size_threshold_gb, file_size_gb) {
-
   # For large files, use faster hashing
   if (fast_hash && file_size_gb > size_threshold_gb) {
-
     # Try xxHash first (much faster than SHA-256)
     if (requireNamespace("digest", quietly = TRUE)) {
-      tryCatch({
-        checksum <- digest::digest(file = file_path, algo = "xxhash64")
-        cli::cli_alert_info("Large file ({round(file_size_gb, 2)} GB) - using xxHash64")
-        return(list(checksum = checksum, algorithm = "xxhash64"))
-      }, error = function(e) {
-        # xxhash64 might not be available in older digest versions
-      })
+      tryCatch(
+        {
+          checksum <- digest::digest(file = file_path, algo = "xxhash64")
+          cli::cli_alert_info("Large file ({round(file_size_gb, 2)} GB) - using xxHash64")
+          return(list(checksum = checksum, algorithm = "xxhash64"))
+        },
+        error = function(e) {
+          # xxhash64 might not be available in older digest versions
+        }
+      )
     }
 
     # Fall back to metadata fingerprint for very large files
@@ -319,7 +320,6 @@ get_data_lineage <- function(data_path = NULL, registry_file = ".capsule/data_re
     info <- file.info(file_path)
     checksum <- digest::digest(paste(info$size, info$mtime, info$ctime))
     return(list(checksum = checksum, algorithm = "metadata_hash"))
-
   } else {
     # Standard SHA-256 for smaller files
     checksum <- digest::digest(file = file_path, algo = "sha256")

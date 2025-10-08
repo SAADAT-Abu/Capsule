@@ -46,7 +46,7 @@ test_that("track_data can use fast hash for simulated large files", {
     source = "generated",
     registry_file = registry_file,
     fast_hash = TRUE,
-    size_threshold_gb = 0.000001  # Very low threshold
+    size_threshold_gb = 0.000001 # Very low threshold
   )
 
   expect_type(result, "list")
@@ -62,10 +62,13 @@ test_that("verify_data works with different checksum algorithms", {
   dir.create(temp_dir, recursive = TRUE)
   old_wd <- getwd()
   setwd(temp_dir)
-  on.exit({
-    setwd(old_wd)
-    unlink(temp_dir, recursive = TRUE)
-  }, add = TRUE)
+  on.exit(
+    {
+      setwd(old_wd)
+      unlink(temp_dir, recursive = TRUE)
+    },
+    add = TRUE
+  )
 
   # Create and track file
   test_file <- "test.txt"
