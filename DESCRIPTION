@@ -2,7 +2,8 @@ Package: Capsule
 Type: Package
 Title: Comprehensive Reproducibility Framework for R and Bioinformatics Analysis
 Version: 0.2.0
-Authors@R: person("Abu", "Saadat", email = "saadatabu1996@gmail.com", role = c("aut", "cre"))
+Author: Saadat Abu
+Maintainer: Saadat Abu <saadatabu1996@gmail.com>
 Description: A comprehensive reproducibility framework designed for R and bioinformatics
     workflows. Automatically captures the entire analysis environment including R session
     info, package versions, external tool versions (samtools, STAR, BWA, etc.), conda
