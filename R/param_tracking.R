@@ -24,7 +24,7 @@
 #' track_params(params, "model_training", "Deep learning model parameters")
 #' }
 track_params <- function(params, analysis_name = NULL, description = NULL,
-                        registry_file = ".reproflow/param_registry.json") {
+                        registry_file = ".capsule/param_registry.json") {
 
   if (!is.list(params) && !is.environment(params)) {
     cli::cli_alert_danger("params must be a list or environment")
@@ -103,7 +103,7 @@ track_params <- function(params, analysis_name = NULL, description = NULL,
 #' }
 set_seed <- function(seed = NULL, kind = NULL, normal.kind = NULL,
                      sample.kind = NULL, analysis_name = NULL,
-                     registry_file = ".reproflow/seed_registry.json") {
+                     registry_file = ".capsule/seed_registry.json") {
 
   # Generate random seed if not provided
   if (is.null(seed)) {
@@ -171,7 +171,7 @@ set_seed <- function(seed = NULL, kind = NULL, normal.kind = NULL,
 #' # Restore previously tracked seed
 #' restore_seed("simulation_1")
 #' }
-restore_seed <- function(analysis_name, registry_file = ".reproflow/seed_registry.json") {
+restore_seed <- function(analysis_name, registry_file = ".capsule/seed_registry.json") {
 
   registry <- .load_seed_registry(registry_file)
 
@@ -204,7 +204,7 @@ restore_seed <- function(analysis_name, registry_file = ".reproflow/seed_registr
 #'
 #' @export
 get_param_history <- function(analysis_name = NULL,
-                              registry_file = ".reproflow/param_registry.json") {
+                              registry_file = ".capsule/param_registry.json") {
 
   registry <- .load_param_registry(registry_file)
 
@@ -233,7 +233,7 @@ get_param_history <- function(analysis_name = NULL,
 #'
 #' @export
 get_seed_history <- function(analysis_name = NULL,
-                             registry_file = ".reproflow/seed_registry.json") {
+                             registry_file = ".capsule/seed_registry.json") {
 
   registry <- .load_seed_registry(registry_file)
 

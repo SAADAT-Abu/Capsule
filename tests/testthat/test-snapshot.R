@@ -1,12 +1,12 @@
 # tests/testthat/test-snapshot.R
 
-library(ReproFlow)
+library(Capsule)
 
 context("snapshot_workflow function")
 
 test_that("snapshot_workflow creates a complete snapshot of the workflow", {
   # 1. Set up a temporary project directory for a clean environment
-  temp_proj_dir <- tempfile("reproflow_snapshot_test_")
+  temp_proj_dir <- tempfile("capsule_snapshot_test_")
   dir.create(temp_proj_dir, recursive = TRUE)
 
   # Store the original working directory and set the new one
@@ -19,8 +19,8 @@ test_that("snapshot_workflow creates a complete snapshot of the workflow", {
     unlink(temp_proj_dir, recursive = TRUE)
   }, add = TRUE)
 
-  # 3. Initialize ReproFlow in the temp directory (disable git/renv for speed)
-  suppressMessages(init_reproflow(use_git = FALSE, use_renv = FALSE))
+  # 3. Initialize Capsule in the temp directory (disable git/renv for speed)
+  suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
 
   # 4. Create a dummy analysis script
   analysis_script_content <- "
@@ -45,7 +45,7 @@ print('Analysis complete.')
   )
 
   # 6. Verify that the snapshot was created correctly
-  snapshot_dir <- file.path(".reproflow/snapshots", snapshot_name)
+  snapshot_dir <- file.path(".capsule/snapshots", snapshot_name)
   expect_true(dir.exists(snapshot_dir), "Snapshot directory should exist.")
 
   # Check for the existence of essential files
@@ -67,12 +67,12 @@ print('Analysis complete.')
   expect_equal(metadata$snapshot_name, snapshot_name)
   expect_equal(metadata$analysis_name, "my_test_analysis")
   expect_equal(metadata$source_script, analysis_script_path)
-  expect_false(is.null(metadata$reproflow_version), "ReproFlow version should be recorded.")
+  expect_false(is.null(metadata$capsule_version), "Capsule version should be recorded.")
 })
 
 test_that("snapshot_workflow fails gracefully with a non-existent source script", {
   # 1. Set up a temporary project directory
-  temp_proj_dir <- tempfile("reproflow_snapshot_fail_test_")
+  temp_proj_dir <- tempfile("capsule_snapshot_fail_test_")
   dir.create(temp_proj_dir, recursive = TRUE)
   original_wd <- getwd()
   setwd(temp_proj_dir)
@@ -81,8 +81,8 @@ test_that("snapshot_workflow fails gracefully with a non-existent source script"
     unlink(temp_proj_dir, recursive = TRUE)
   }, add = TRUE)
 
-  # 2. Initialize ReproFlow
-  suppressMessages(init_reproflow(use_git = FALSE, use_renv = FALSE))
+  # 2. Initialize Capsule
+  suppressMessages(init_capsule(use_git = FALSE, use_renv = FALSE))
 
   # 3. Define a path to a non-existent script
   non_existent_script <- "non_existent_script.R"

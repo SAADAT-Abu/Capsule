@@ -1,6 +1,6 @@
 # tests/testthat/test-basic.R
 
-library(ReproFlow)
+library(Capsule)
 
 
 test_that("capture_session works", {
@@ -78,7 +78,9 @@ test_that("track_data creates checksums", {
   )
 
   expect_type(result, "list")
-  expect_true("checksum_sha256" %in% names(result))
+  # Updated to check for new field name
+  expect_true("checksum" %in% names(result))
+  expect_true("checksum_algorithm" %in% names(result))
   expect_true(file.exists(registry_file))
 
   # Clean up

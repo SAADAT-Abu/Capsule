@@ -1,4 +1,4 @@
 library(testthat)
-library(ReproFlow)
+library(Capsule)
 
-test_check("ReproFlow")
+test_check("Capsule")

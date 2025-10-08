@@ -1,13 +1,16 @@
-Package: ReproFlow
+Package: Capsule
 Type: Package
-Title: Comprehensive Reproducibility Framework for R Analysis
-Version: 0.1.0
+Title: Comprehensive Reproducibility Framework for R and Bioinformatics Analysis
+Version: 0.2.0
 Authors@R: person("Abu", "Saadat", email = "saadatabu1996@gmail.com", role = c("aut", "cre"))
-Description: A comprehensive reproducibility framework that automatically captures
-    the entire analysis environment including R session info, package versions,
-    data provenance, parameter choices, and random seeds. Generates executable
-    scripts with Docker and renv configurations to ensure complete reproducibility
-    of research workflows.
+Description: A comprehensive reproducibility framework designed for R and bioinformatics
+    workflows. Automatically captures the entire analysis environment including R session
+    info, package versions, external tool versions (samtools, STAR, BWA, etc.), conda
+    environments, reference genomes, data provenance with smart checksumming for large files,
+    parameter choices, random seeds, and hardware specifications. Generates executable scripts
+    with Docker, Singularity, and renv configurations. Integrates with workflow managers
+    (Nextflow, Snakemake, WDL, CWL) to ensure complete reproducibility of computational
+    research workflows.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -19,10 +22,10 @@ Imports:
     digest,
     yaml,
     cli,
-    rlang
+    utils
 Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
-RoxygenNote: 7.2.0
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr

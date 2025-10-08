@@ -1,7 +1,7 @@
-#' Initialize ReproFlow in Project
+#' Initialize Capsule in Project
 #'
 #' @description
-#' Initialize ReproFlow reproducibility framework in the current project.
+#' Initialize Capsule reproducibility framework in the current project.
 #' Creates necessary directory structure and configuration files.
 #'
 #' @param project_path Character. Path to project directory. Default is current directory.
@@ -11,17 +11,18 @@
 #'
 #' @return Invisible NULL
 #'
+#' @importFrom utils packageVersion
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # Initialize ReproFlow in current directory
-#' init_reproflow()
+#' # Initialize Capsule in current directory
+#' init_capsule()
 #'
 #' # Initialize without renv
-#' init_reproflow(use_renv = FALSE)
+#' init_capsule(use_renv = FALSE)
 #' }
-init_reproflow <- function(project_path = ".",
+init_capsule <- function(project_path = ".",
                           use_renv = TRUE,
                           use_git = TRUE,
                           create_gitignore = TRUE) {
@@ -30,13 +31,13 @@ init_reproflow <- function(project_path = ".",
   on.exit(setwd(old_wd))
   setwd(project_path)
 
-  cli::cli_h1("Initializing ReproFlow")
+  cli::cli_h1("Initializing Capsule")
 
-  # Create ReproFlow directory structure
+  # Create Capsule directory structure
   cli::cli_alert_info("Creating directory structure...")
-  dir.create(".reproflow", showWarnings = FALSE)
-  dir.create(".reproflow/snapshots", showWarnings = FALSE)
-  dir.create(".reproflow/scripts", showWarnings = FALSE)
+  dir.create(".capsule", showWarnings = FALSE)
+  dir.create(".capsule/snapshots", showWarnings = FALSE)
+  dir.create(".capsule/scripts", showWarnings = FALSE)
 
   # Initialize renv if requested
   if (use_renv) {
@@ -71,7 +72,7 @@ init_reproflow <- function(project_path = ".",
   # Create example workflow script
   .create_example_script()
 
-  cli::cli_alert_success("ReproFlow initialized successfully!")
+  cli::cli_alert_success("Capsule initialized successfully!")
   cli::cli_h2("Next steps:")
   cli::cli_ul(c(
     "Use {.code track_data()} to track your data files",
@@ -127,7 +128,7 @@ snapshot_workflow <- function(snapshot_name = NULL,
   cli::cli_h1(paste("Creating Workflow Snapshot:", snapshot_name))
 
   # Create snapshot directory
-  snapshot_dir <- file.path(".reproflow/snapshots", snapshot_name)
+  snapshot_dir <- file.path(".capsule/snapshots", snapshot_name)
   dir.create(snapshot_dir, recursive = TRUE, showWarnings = FALSE)
 
   generated_files <- list()
@@ -164,18 +165,18 @@ snapshot_workflow <- function(snapshot_name = NULL,
 
   # Copy registries
   cli::cli_alert_info("Copying tracking registries...")
-  if (file.exists(".reproflow/data_registry.json")) {
-    file.copy(".reproflow/data_registry.json",
+  if (file.exists(".capsule/data_registry.json")) {
+    file.copy(".capsule/data_registry.json",
               file.path(snapshot_dir, "data_registry.json"))
     generated_files$data_registry <- file.path(snapshot_dir, "data_registry.json")
   }
-  if (file.exists(".reproflow/param_registry.json")) {
-    file.copy(".reproflow/param_registry.json",
+  if (file.exists(".capsule/param_registry.json")) {
+    file.copy(".capsule/param_registry.json",
               file.path(snapshot_dir, "param_registry.json"))
     generated_files$param_registry <- file.path(snapshot_dir, "param_registry.json")
   }
-  if (file.exists(".reproflow/seed_registry.json")) {
-    file.copy(".reproflow/seed_registry.json",
+  if (file.exists(".capsule/seed_registry.json")) {
+    file.copy(".capsule/seed_registry.json",
               file.path(snapshot_dir, "seed_registry.json"))
     generated_files$seed_registry <- file.path(snapshot_dir, "seed_registry.json")
   }
@@ -223,7 +224,7 @@ snapshot_workflow <- function(snapshot_name = NULL,
     created = Sys.time(),
     created_by = Sys.info()["user"],
     r_version = R.version.string,
-    reproflow_version = as.character(packageVersion("ReproFlow")),
+    capsule_version = as.character(packageVersion("Capsule")),
     source_script = source_script,
     files = generated_files
   )
@@ -246,10 +247,10 @@ snapshot_workflow <- function(snapshot_name = NULL,
   gitignore_path <- ".gitignore"
 
   # Lines to add
-  reproflow_lines <- c(
+  capsule_lines <- c(
     "",
-    "# ReproFlow",
-    ".reproflow/snapshots/",
+    "# Capsule",
+    ".capsule/snapshots/",
     "",
     "# R",
     ".Rhistory",
@@ -268,18 +269,18 @@ snapshot_workflow <- function(snapshot_name = NULL,
   # Read existing or create new
   if (file.exists(gitignore_path)) {
     existing <- readLines(gitignore_path)
-    if (!any(grepl("ReproFlow", existing))) {
-      writeLines(c(existing, reproflow_lines), gitignore_path)
+    if (!any(grepl("Capsule", existing))) {
+      writeLines(c(existing, capsule_lines), gitignore_path)
       cli::cli_alert_success("Updated .gitignore")
     }
   } else {
-    writeLines(reproflow_lines, gitignore_path)
+    writeLines(capsule_lines, gitignore_path)
     cli::cli_alert_success("Created .gitignore")
   }
 }
 
 
-#' Create ReproFlow config
+#' Create Capsule config
 #' @keywords internal
 .create_config <- function() {
   config <- list(
@@ -292,7 +293,7 @@ snapshot_workflow <- function(snapshot_name = NULL,
     auto_snapshot = FALSE
   )
 
-  config_file <- ".reproflow/config.json"
+  config_file <- ".capsule/config.json"
   jsonlite::write_json(config, config_file, auto_unbox = TRUE, pretty = TRUE)
   cli::cli_alert_success("Created configuration file")
 }
@@ -302,10 +303,10 @@ snapshot_workflow <- function(snapshot_name = NULL,
 #' @keywords internal
 .create_example_script <- function() {
   example_script <- c(
-    "# ReproFlow Example Workflow",
-    "# This is an example of how to use ReproFlow in your analysis",
+    "# Capsule Example Workflow",
+    "# This is an example of how to use Capsule in your analysis",
     "",
-    "library(ReproFlow)",
+    "library(Capsule)",
     "",
     "# 1. Set and track random seed",
     "set_seed(12345, analysis_name = 'example_analysis')",
@@ -334,7 +335,7 @@ snapshot_workflow <- function(snapshot_name = NULL,
     "# )"
   )
 
-  example_file <- ".reproflow/example_workflow.R"
+  example_file <- ".capsule/example_workflow.R"
   writeLines(example_script, example_file)
   cli::cli_alert_success("Created example workflow: {.file {example_file}}")
 }

@@ -10,6 +10,7 @@
 #'
 #' @return A list containing package information
 #'
+#' @importFrom utils installed.packages sessionInfo
 #' @export
 #'
 #' @examples
