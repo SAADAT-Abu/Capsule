@@ -1,0 +1,34 @@
+Package: Capsule
+Type: Package
+Title: Comprehensive Reproducibility Framework for R and Bioinformatics Analysis
+Version: 0.2.0
+Authors@R: person(given = "Abu",
+                  family = "SAADAT",
+                  role = c("aut", "cre"),
+                  email = "saadatabu1996@gmail.com",
+                  comment = c(ORCID = "https://orcid.org/0000-0001-9636-2513",
+                  affiliation = "Università degli Studi della Campania Luigi Vanvitelli"))
+Description: A comprehensive reproducibility framework designed for R and bioinformatics
+    workflows. Automatically captures the entire analysis environment including R session
+    info, package versions, external tool versions (Samtools, STAR, BWA, etc.), conda
+    environments, reference genomes, data provenance with smart checksumming for large files,
+    parameter choices, random seeds, and hardware specifications. Generates executable scripts
+    with Docker, Singularity, and renv configurations. Integrates with workflow managers
+    (Nextflow, Snakemake, WDL, CWL) to ensure complete reproducibility of computational
+    research workflows.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    R (>= 4.0.0)
+Imports:
+    renv,
+    jsonlite,
+    digest,
+    yaml,
+    cli,
+    utils
+Suggests:
+    testthat (>= 3.0.0)
+BugReports: https://github.com/SAADAT-Abu/Capsule/issues
+RoxygenNote: 7.3.3

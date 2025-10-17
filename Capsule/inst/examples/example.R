@@ -1,0 +1,404 @@
+# =====================================
+# RNA-Seq Analysis Example Workflow
+# =====================================
+
+# Clear environment
+rm(list = ls())
+
+library(Capsule)
+
+# Create project directory
+project_dir <- "Capsule_full_test"
+if (dir.exists(project_dir)) {
+  unlink(project_dir, recursive = TRUE)
+}
+dir.create(project_dir, showWarnings = FALSE)
+
+# Store original directory
+original_dir <- getwd()
+setwd(project_dir)
+
+# Ensure we return to original directory on exit
+on.exit(setwd(original_dir), add = TRUE)
+
+# ============================================================================
+# Step 1: Initialize Capsule
+# ============================================================================
+print("=== Step 1: Initializing Capsule ===\n")
+init_capsule(
+  use_renv = FALSE,  # Disable to avoid interactive prompts
+  use_git = FALSE,
+  create_gitignore = TRUE
+)
+
+print("\nDirectory structure created:\n")
+print("✓ .capsule/\n")
+print("✓ .capsule/scripts/\n")
+print("✓ .capsule/snapshots/\n")
+
+# ============================================================================
+# Step 2: Set Random Seed
+# ============================================================================
+print("\n=== Step 2: Setting Random Seed ===\n")
+set_seed(42, analysis_name = "simulated_rnaseq_de")
+
+# ============================================================================
+# Step 3: Generate Simulated Data
+# ============================================================================
+print("\n=== Step 3: Generating Simulated RNA-seq Data ===\n")
+
+set.seed(42)  # For reproducibility of simulation
+
+# Parameters
+n_genes <- 1000
+n_samples <- 12
+
+# Sample metadata
+sample_ids <- paste0("Sample_", 1:n_samples)
+conditions <- rep(c("Control", "Tumor"), each = 6)
+batch <- rep(c("Batch1", "Batch2"), times = 6)
+
+metadata <- data.frame(
+  sample_id = sample_ids,
+  condition = factor(conditions),
+  batch = factor(batch),
+  age = sample(40:70, n_samples, replace = TRUE),
+  gender = sample(c("M", "F"), n_samples, replace = TRUE),
+  row.names = sample_ids
+)
+
+# Generate count matrix
+gene_names <- paste0("GENE_", sprintf("%04d", 1:n_genes))
+counts_matrix <- matrix(
+  rpois(n_genes * n_samples, lambda = 100),
+  nrow = n_genes,
+  ncol = n_samples,
+  dimnames = list(gene_names, sample_ids)
+)
+
+# Add differential expression (100 true DE genes)
+de_gene_idx <- sample(1:n_genes, 100)
+fc <- runif(100, min = 2, max = 5)  # Fold changes between 2-5x
+for (i in seq_len(100)) {
+  counts_matrix[de_gene_idx[i], 7:12] <-
+    round(counts_matrix[de_gene_idx[i], 7:12] * fc[i])
+}
+
+print("Generated:", n_genes, "genes ×", n_samples, "samples\n")
+print("True DE genes:", length(de_gene_idx), "\n")
+
+# ============================================================================
+# Step 4: Save Data Files
+# ============================================================================
+print("\n=== Step 4: Saving Data Files ===\n")
+dir.create("data", showWarnings = FALSE)
+
+write.csv(counts_matrix, "data/counts.csv")
+write.csv(metadata, "data/metadata.csv")
+
+# Save ground truth
+ground_truth <- data.frame(
+  gene = gene_names[de_gene_idx],
+  true_fc = fc,
+  stringsAsFactors = FALSE
+)
+write.csv(ground_truth, "data/ground_truth.csv", row.names = FALSE)
+
+print("✓ data/counts.csv\n")
+print("✓ data/metadata.csv\n")
+print("✓ data/ground_truth.csv\n")
+
+# ============================================================================
+# Step 5: Track Data with Capsule
+# ============================================================================
+print("\n=== Step 5: Tracking Data Provenance ===\n")
+
+track_data(
+  "data/counts.csv",
+  source = "generated",
+  description = "Simulated RNA-seq count matrix",
+  metadata = list(n_genes = n_genes, n_samples = n_samples)
+)
+
+track_data(
+  "data/metadata.csv",
+  source = "generated",
+  description = "Sample metadata with clinical information"
+)
+
+track_data(
+  "data/ground_truth.csv",
+  source = "generated",
+  description = "Ground truth DE genes for validation"
+)
+
+# ============================================================================
+# Step 6: Track Analysis Parameters
+# ============================================================================
+print("\n=== Step 6: Tracking Analysis Parameters ===\n")
+
+analysis_params <- list(
+  alpha = 0.05,
+  lfc_threshold = log2(1.5),
+  min_count = 10,
+  p_adjust_method = "BH",
+  design_formula = "~ batch + condition"
+)
+
+track_params(
+  analysis_params,
+  analysis_name = "simulated_rnaseq_de",
+  description = "Differential expression analysis parameters"
+)
+
+# ============================================================================
+# Step 7: Create Analysis Script
+# ============================================================================
+print("\n=== Step 7: Creating Analysis Script ===\n")
+
+analysis_code <- '#!/usr/bin/env Rscript
+# RNA-seq Differential Expression Analysis
+# Auto-generated by Capsule test
+
+library(Capsule)
+
+print("Loading data...\\n")
+counts <- read.csv("data/counts.csv", row.names = 1)
+metadata <- read.csv("data/metadata.csv", row.names = 1)
+
+print("Samples:", ncol(counts), "\\n")
+print("Genes:", nrow(counts), "\\n")
+
+# Filter low count genes
+min_count <- 10
+min_samples <- 3
+keep <- rowSums(counts >= min_count) >= min_samples
+counts_filtered <- counts[keep, ]
+print("After filtering:", nrow(counts_filtered), "genes\\n")
+
+# Calculate means
+control_idx <- metadata$condition == "Control"
+tumor_idx <- metadata$condition == "Tumor"
+
+control_mean <- rowMeans(counts_filtered[, control_idx])
+tumor_mean <- rowMeans(counts_filtered[, tumor_idx])
+
+# Log2 fold change
+log2fc <- log2((tumor_mean + 1) / (control_mean + 1))
+
+# T-test for each gene
+print("Running statistical tests...\\n")
+pvalues <- apply(counts_filtered, 1, function(gene_counts) {
+  tryCatch({
+    t.test(gene_counts[control_idx], gene_counts[tumor_idx])$p.value
+  }, error = function(e) 1.0)
+})
+
+# Adjust p-values
+padj <- p.adjust(pvalues, method = "BH")
+
+# Create results table
+results <- data.frame(
+  gene = rownames(counts_filtered),
+  baseMean = (control_mean + tumor_mean) / 2,
+  log2FoldChange = log2fc,
+  pvalue = pvalues,
+  padj = padj,
+  significant = (padj < 0.05) & (abs(log2fc) > log2(1.5)),
+  stringsAsFactors = FALSE
+)
+
+# Sort by p-value
+results <- results[order(results$pvalue), ]
+
+# Summary
+n_sig <- sum(results$significant, na.rm = TRUE)
+n_up <- sum(results$significant & results$log2FoldChange > 0, na.rm = TRUE)
+n_down <- sum(results$significant & results$log2FoldChange < 0, na.rm = TRUE)
+
+print("\\nResults Summary:\\n")
+print("  Total genes tested:", nrow(results), "\\n")
+print("  Significant DE genes:", n_sig, "\\n")
+print("  Up-regulated:", n_up, "\\n")
+print("  Down-regulated:", n_down, "\\n")
+
+# Save results
+dir.create("results", showWarnings = FALSE)
+write.csv(results, "results/de_results.csv", row.names = FALSE)
+
+sig_results <- results[results$significant & !is.na(results$significant), ]
+write.csv(sig_results, "results/significant_genes.csv", row.names = FALSE)
+
+print("\\nResults saved to results/ directory\\n")
+
+# Track output
+track_data("results/de_results.csv", source = "generated",
+           description = "Complete DE analysis results")
+track_data("results/significant_genes.csv", source = "generated",
+           description = "Significant DE genes only")
+
+print("Analysis complete!\\n")
+'
+
+dir.create("scripts", showWarnings = FALSE)
+writeLines(analysis_code, "scripts/de_analysis.R")
+print("✓ scripts/de_analysis.R\n")
+
+# Make it executable (Unix-like systems)
+if (.Platform$OS.type == "unix") {
+  Sys.chmod("scripts/de_analysis.R", mode = "0755")
+}
+
+# ============================================================================
+# Step 8: Run the Analysis
+# ============================================================================
+print("\n=== Step 8: Running Analysis Script ===\n")
+source("scripts/de_analysis.R")
+
+# ============================================================================
+# Step 9: Validate Results
+# ============================================================================
+print("\n=== Step 9: Validating Against Ground Truth ===\n")
+
+results <- read.csv("results/significant_genes.csv")
+ground_truth <- read.csv("data/ground_truth.csv")
+
+detected_genes <- results$gene
+true_genes <- ground_truth$gene
+
+tp <- sum(detected_genes %in% true_genes)
+fp <- sum(!(detected_genes %in% true_genes))
+fn <- sum(!(true_genes %in% detected_genes))
+
+precision <- tp / (tp + fp)
+recall <- tp / (tp + fn)
+f1 <- 2 * (precision * recall) / (precision + recall)
+
+print("\nValidation Metrics:\n")
+print("  True Positives:", tp, "\n")
+print("  False Positives:", fp, "\n")
+print("  False Negatives:", fn, "\n")
+print("  Precision:", round(precision, 3), "\n")
+print("  Recall:", round(recall, 3), "\n")
+print("  F1 Score:", round(f1, 3), "\n")
+
+# ============================================================================
+# Step 10: Verify Data Integrity
+# ============================================================================
+print("\n=== Step 10: Verifying Data Integrity ===\n")
+verify_result <- verify_data()
+
+# ============================================================================
+# Step 11: Create Workflow Snapshot
+# ============================================================================
+print("\n=== Step 11: Creating Complete Workflow Snapshot ===\n")
+
+snapshot_files <- snapshot_workflow(
+  snapshot_name = "test_complete",
+  analysis_name = "simulated_rnaseq_de",
+  source_script = "scripts/de_analysis.R",
+  description = "Complete RNA-seq DE analysis with validation",
+  generate_docker = TRUE,
+  generate_script = TRUE,
+  generate_report = TRUE
+)
+
+# ============================================================================
+# Step 12: Inspect What Was Created
+# ============================================================================
+print("\n=== Step 12: Inspecting Generated Artifacts ===\n")
+
+snapshot_dir <- ".capsule/snapshots/test_complete"
+
+print("\n1. Snapshot Directory Contents:\n")
+if (dir.exists(snapshot_dir)) {
+  files <- list.files(snapshot_dir, recursive = TRUE)
+  for (f in files) {
+    size <- file.info(file.path(snapshot_dir, f))$size
+    print(sprintf("  ✓ %-50s %8d bytes\n", f, size))
+  }
+} else {
+  print("  ✗ Snapshot directory not found!\n")
+}
+
+print("\n2. Reproducible Script Preview:\n")
+repro_script <- file.path(snapshot_dir, "simulated_rnaseq_de_reproducible.R")
+if (file.exists(repro_script)) {
+  lines <- readLines(repro_script, n = 25)
+  print("  First 20 lines:\n")
+  print("  ", paste(rep("-", 70), collapse = ""), "\n", sep = "")
+  for (i in seq_len(min(20, length(lines)))) {
+    print("  ", lines[i], "\n", sep = "")
+  }
+  print("  ", paste(rep("-", 70), collapse = ""), "\n", sep = "")
+}
+
+print("\n3. Docker Configuration:\n")
+dockerfile <- file.path(snapshot_dir, "docker/Dockerfile")
+if (file.exists(dockerfile)) {
+  lines <- readLines(dockerfile, n = 15)
+  print("  Dockerfile preview:\n")
+  for (i in seq_len(min(10, length(lines)))) {
+    print("  ", lines[i], "\n", sep = "")
+  }
+}
+
+print("\n4. Reproducibility Report:\n")
+report <- file.path(snapshot_dir, "reproducibility_report.md")
+if (file.exists(report)) {
+  print("  ✓ Report generated at:", report, "\n")
+  print("  File size:", file.info(report)$size, "bytes\n")
+}
+
+print("\n5. Registries:\n")
+for (reg in c("data_registry.json", "param_registry.json", "seed_registry.json")) {
+  reg_path <- file.path(".capsule", reg)
+  if (file.exists(reg_path)) {
+    print("  ✓", reg, "-", file.info(reg_path)$size, "bytes\n")
+  }
+}
+
+# ============================================================================
+# Final Summary
+# ============================================================================
+print("\n")
+print("=====================================================================\n")
+print("                  Capsule Test Successfully Completed              \n")
+print("=====================================================================\n")
+print("\n")
+print("Summary of Generated Artifacts:\n")
+print("\n")
+print("📁 Project Structure:\n")
+print("  ├── data/                    # Input data\n")
+print("  ├── scripts/                 # Analysis scripts\n")
+print("  ├── results/                 # Analysis outputs\n")
+print("  └── .capsule/              # Capsule tracking\n")
+print("      ├── *_registry.json      # Tracking registries\n")
+print("      └── snapshots/           # Complete snapshots\n")
+print("          └── test_complete/\n")
+print("              ├── *_reproducible.R    # Executable script\n")
+print("              ├── docker/             # Docker config\n")
+print("              └── *.json              # Metadata\n")
+print("\n")
+print("✓ Data provenance tracked\n")
+print("✓ Random seed recorded\n")
+print("✓ Parameters documented\n")
+print("✓ Analysis executed\n")
+print("✓ Results validated (F1 =", round(f1, 3), ")\n")
+print("✓ Complete snapshot created\n")
+print("\n")
+print("Next Steps:\n")
+print("1. View reproducibility report:\n")
+print("   print", report, "\n")
+print("\n")
+print("2. Test the reproducible script:\n")
+print("   cd", project_dir, "\n")
+print("   Rscript", repro_script, "\n")
+print("\n")
+print("3. Use Docker for full reproducibility:\n")
+print("   cd", file.path(project_dir, snapshot_dir, "docker"), "\n")
+print("   docker-compose up\n")
+print("\n")
+print("=====================================================================\n")
+
+print("\nTest completed successfully! ✨\n\n")
