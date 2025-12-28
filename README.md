@@ -35,7 +35,7 @@ Capsule **automatically** tracks all of this:
 -  Generates Docker AND Singularity containers
 -  Exports to Nextflow, Snakemake, WDL, and CWL formats
 
-[Image #1]
+![workflow](inst/workflow.png)
 
 ---
 
